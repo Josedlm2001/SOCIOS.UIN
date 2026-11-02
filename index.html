@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UINGO Socio - Control de Servicios por Tiempo</title>
+    <title>UINGO Socio - Control de Servicios por Tiempo (Auditado)</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <!-- Supabase JS Client Client -->
+    <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         tailwind.config = {
@@ -37,14 +37,15 @@
         .glow-blue {
             box-shadow: 0 0 25px -5px rgba(14, 88, 255, 0.4);
         }
-        .glow-cyan {
-            box-shadow: 0 0 25px -5px rgba(11, 185, 254, 0.4);
-        }
         .glow-rose {
-            box-shadow: 0 0 25px -5px rgba(244, 63, 94, 0.3);
+            box-shadow: 0 0 25px -5px rgba(244, 63, 94, 0.4);
+        }
+        @keyframes pulse-slow {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
         .animate-pulse-slow {
-            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+            animation: pulse-slow 1.5s infinite;
         }
         ::-webkit-scrollbar {
             width: 6px;
@@ -74,7 +75,7 @@
                 </div>
                 <div class="border-l border-slate-200 pl-3">
                     <h1 class="text-xs font-bold text-uingo-black uppercase tracking-wider">Panel de Socios</h1>
-                    <p class="text-[10px] font-semibold text-slate-500">Control de Tiempo Local</p>
+                    <p class="text-[10px] font-semibold text-slate-500">Control Antifraude de Tiempos</p>
                 </div>
             </div>
             
@@ -91,10 +92,10 @@
         <section id="setupSection" class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
             <div class="text-center pb-2 border-b border-slate-100">
                 <div class="inline-flex items-center justify-center w-12 h-12 bg-blue-50 text-uingo-blue rounded-2xl mb-2 border border-blue-100">
-                    <i class="fa-solid fa-truck-clock text-xl"></i>
+                    <i class="fa-solid fa-shield-halved text-xl"></i>
                 </div>
-                <h2 class="text-xl font-extrabold text-uingo-black">Iniciar Registro de Servicio</h2>
-                <p class="text-slate-500 text-xs mt-1">Ingresa los datos antes de iniciar la marcación por tiempo.</p>
+                <h2 class="text-xl font-extrabold text-uingo-black">Inicio de Servicio Controlado</h2>
+                <p class="text-slate-500 text-xs mt-1">Registra los datos antes de iniciar la marcación por tiempo.</p>
             </div>
             <form id="serviceForm" onsubmit="event.preventDefault(); startService();" class="space-y-4">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -154,20 +155,17 @@
                         </select>
                     </div>
                 </div>
-                <!-- Aviso Informativo de Reglas de Cobro -->
-                <div class="p-4 bg-sky-50 border border-sky-200 rounded-2xl text-xs text-slate-700 space-y-1.5">
-                    <p class="font-bold text-uingo-blue flex items-center gap-2 text-xs">
-                        <i class="fa-solid fa-circle-info"></i>
-                        Regla Oficial UINGO de Medición de Tiempo:
+                <!-- Aviso Informativo Antifraude -->
+                <div class="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-xs text-slate-700 space-y-1.5">
+                    <p class="font-bold text-rose-600 flex items-center gap-2 text-xs">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        Política Antifraude de Tiempos UINGO:
                     </p>
                     <p class="leading-relaxed">
-                        • El cronómetro debe iniciarse exactamente al <strong class="text-uingo-black">llegar la unidad a la ubicación</strong>.
+                        • El cronómetro se inicia al <strong class="text-uingo-black">llegar a la ubicación</strong>. Se otorgan 5 min de cortesía inicial y final.
                     </p>
                     <p class="leading-relaxed">
-                        • Se incluyen automáticamente <strong class="text-uingo-black">5 minutos de cortesía</strong> al inicio y al final antes de computar recargos.
-                    </p>
-                    <p class="leading-relaxed">
-                        • Transcurrido el límite, el cobro excedente es estrictamente proporcional: <span id="rateNoticeText" class="font-bold text-uingo-blue">$10.40/min (Camioneta)</span>.
+                        • El tiempo extra cuenta con un <strong class="text-rose-600">tope estricto máximo de 30 minutos extras</strong>. Hacer las cosas lentas a propósito genera penalizaciones en la plataforma.
                     </p>
                 </div>
                 <button type="submit" class="w-full bg-uingo-blue hover:bg-uingo-mid text-white font-extrabold py-4 px-6 rounded-2xl shadow-xl transition-all duration-200 transform active:scale-95 flex items-center justify-center space-x-2 text-base glow-blue">
@@ -179,21 +177,20 @@
 
         <!-- VISTA 2: PANEL DE CRONÓMETRO ACTIVO -->
         <section id="activeTimerSection" class="hidden bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 text-center">
-            <!-- Header Status -->
             <div class="flex items-center justify-between border-b border-slate-100 pb-4">
                 <div class="flex items-center space-x-2">
                     <span class="relative flex h-3 w-3">
                       <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-uingo-light opacity-75"></span>
                       <span class="relative inline-flex rounded-full h-3 w-3 bg-uingo-blue"></span>
                     </span>
-                    <span class="text-xs font-bold text-uingo-blue uppercase tracking-wider">Servicio en Curso</span>
+                    <span class="text-xs font-bold text-uingo-blue uppercase tracking-wider">Servicio Auditado en Curso</span>
                 </div>
                 <div class="text-right">
                     <span class="text-[10px] text-slate-400 uppercase block font-bold">Llegada</span>
                     <span id="displayStartTime" class="text-xs font-black text-uingo-blue font-mono">-</span>
                 </div>
             </div>
-            <!-- Ficha de Datos Rápidos -->
+
             <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-left text-xs grid grid-cols-2 gap-3">
                 <div>
                     <span class="text-slate-400 block text-[10px] font-bold uppercase">Cliente</span>
@@ -212,7 +209,7 @@
                     <strong id="displayContractedTime" class="text-uingo-mid font-bold block">-</strong>
                 </div>
             </div>
-            <!-- Display de Reloj en Vivo -->
+
             <div id="clockContainer" class="bg-slate-950 border-2 border-slate-900 rounded-3xl p-6 sm:p-8 shadow-inner transition-colors duration-300">
                 <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Tiempo Transcurrido</p>
                 <div id="timerDisplay" class="text-5xl sm:text-6xl font-black text-white tracking-wider font-mono my-2">
@@ -223,24 +220,43 @@
                     <span>Tolerancia Activa (5 min cortesía)</span>
                 </div>
             </div>
-            <!-- Panel Dinámico de Excedente -->
+
             <div id="overtimeCard" class="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs space-y-2">
                 <div class="flex justify-between items-center">
-                    <span class="text-slate-500 font-medium">Tiempo Límite (+5m Cortesía):</span>
-                    <span id="displayAllowedTime" class="font-bold text-uingo-black font-mono">-</span>
-                </div>
-                <div class="flex justify-between items-center">
-                    <span class="text-slate-500 font-medium">Minutos Excedidos:</span>
-                    <span id="extraMinutesText" class="font-black text-slate-800 text-sm">0 min</span>
+                    <span class="text-slate-500 font-medium">Minutos Excedidos (Máx 30m):</span>
+                    <span id="extraMinutesText" class="font-black text-slate-800 text-sm">0 / 30 min</span>
                 </div>
                 <div class="pt-2 border-t border-slate-200 flex justify-between items-center">
                     <span class="text-slate-700 font-bold">Recargo Extra Estimado:</span>
                     <span id="extraCostText" class="font-black text-base text-slate-800">$0.00 MXN</span>
                 </div>
             </div>
-            <button onclick="finishService()" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-extrabold py-4 px-6 rounded-2xl shadow-xl transition-all duration-200 transform active:scale-95 flex items-center justify-center space-x-2 text-base glow-rose">
+
+            <button onclick="goToAuditStep()" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-extrabold py-4 px-6 rounded-2xl shadow-xl transition-all duration-200 transform active:scale-95 flex items-center justify-center space-x-2 text-base glow-rose">
                 <i class="fa-solid fa-flag-checkered text-lg"></i>
-                <span>FINALIZAR TRABAJO Y GENERAR COBRO</span>
+                <span>FINALIZAR TRABAJO (SUBIR EVIDENCIA)</span>
+            </button>
+        </section>
+
+        <!-- VISTA DE AUDITORÍA: EVIDENCIA FOTOGRÁFICA OBLIGATORIA -->
+        <section id="auditSection" class="hidden bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 text-center">
+            <div class="pb-2 border-b border-slate-100">
+                <div class="w-14 h-14 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-2 text-2xl border border-amber-200">
+                    <i class="fa-solid fa-camera"></i>
+                </div>
+                <h3 class="text-xl font-black text-uingo-black">Evidencia de Cierre Obligatoria</h3>
+                <p class="text-slate-500 text-xs mt-1">Para proteger el servicio, toma o sube una foto de la descarga o conformidad.</p>
+            </div>
+
+            <div class="space-y-3 text-left">
+                <label class="block text-xs font-bold text-slate-700 uppercase">Foto de Conformidad / Entrega *</label>
+                <input type="file" id="evidencePhoto" accept="image/*" capture="environment" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-3 text-xs text-slate-700 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-uingo-blue file:text-white hover:file:bg-uingo-mid cursor-pointer">
+                <p class="text-[11px] text-rose-600 font-bold">⚠️ Sin adjuntar esta foto el sistema no te permitirá generar el cobro ni cerrar el folio.</p>
+            </div>
+
+            <button onclick="processAndFinishService()" class="w-full bg-uingo-blue hover:bg-uingo-mid text-white font-extrabold py-4 px-6 rounded-2xl shadow-xl transition flex items-center justify-center space-x-2 text-base glow-blue">
+                <i class="fa-solid fa-circle-check text-lg"></i>
+                <span>VALIDAR EVIDENCIA Y VER RESUMEN</span>
             </button>
         </section>
 
@@ -250,8 +266,8 @@
                 <div class="w-14 h-14 bg-blue-50 text-uingo-blue rounded-full flex items-center justify-center mx-auto mb-2 text-2xl border border-blue-100">
                     <i class="fa-solid fa-circle-check"></i>
                 </div>
-                <h3 class="text-2xl font-black text-uingo-black">Servicio Concluido</h3>
-                <p class="text-slate-500 text-xs mt-1">Desglose de transparencia total para Cliente y Socio</p>
+                <h3 class="text-2xl font-black text-uingo-black">Servicio Concluido y Auditado</h3>
+                <p class="text-slate-500 text-xs mt-1">Desglose protegido con candados antifraude</p>
             </div>
             <!-- Tabla Resumen -->
             <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5 text-xs space-y-3">
@@ -276,12 +292,12 @@
                     <span id="summaryContractedTime" class="font-bold text-uingo-black">-</span>
                 </div>
                 <div class="flex justify-between pb-2.5 border-b border-slate-200">
-                    <span class="text-slate-500">Tolerancia Aplicada:</span>
-                    <span class="font-bold text-uingo-mid">5 Minutos Cortesía</span>
+                    <span class="text-slate-500">Tiempo Extra Cobrado (Máx 30m):</span>
+                    <span id="summaryExtraMinutes" class="font-extrabold text-rose-600">-</span>
                 </div>
                 <div class="flex justify-between pb-2.5 border-b border-slate-200">
-                    <span class="text-slate-500">Tiempo Extra Cobrable:</span>
-                    <span id="summaryExtraMinutes" class="font-extrabold text-rose-600">-</span>
+                    <span class="text-slate-500">Evidencia Fotográfica:</span>
+                    <span class="font-bold text-emerald-600">✓ Registrada en Base de Datos</span>
                 </div>
                 <div class="flex justify-between pb-2.5 border-b border-slate-200">
                     <span class="text-slate-500">Cobro Base Inicial:</span>
@@ -304,7 +320,7 @@
             <div class="space-y-3">
                 <button onclick="sendWhatsAppReport()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-4 px-6 rounded-2xl shadow-xl transition flex items-center justify-center space-x-2 text-sm glow-blue">
                     <i class="fa-brands fa-whatsapp text-xl"></i>
-                    <span>ENVIAR REPORTE OFICIAL A WHATSAPP UINGO</span>
+                    <span>ENVIAR REPORTE AUDITADO A WHATSAPP</span>
                 </button>
                 <button onclick="resetApp()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3.5 px-6 rounded-2xl transition text-xs flex items-center justify-center space-x-2">
                     <i class="fa-solid fa-rotate-left"></i>
@@ -317,27 +333,28 @@
     <!-- Footer -->
     <footer class="bg-white border-t border-slate-200 py-4 text-center text-[11px] text-slate-500">
         <div class="max-w-2xl mx-auto px-4">
-            <p>UINGO Logística & Fletes © 2026. Plataforma Operativa de Socios. Colima & Jalisco, México.</p>
+            <p>UINGO Logística & Fletes © 2026. Sistema Antifraude Operativo. Colima & Jalisco, México.</p>
         </div>
     </footer>
 
-    <!-- LÓGICA DE JAVASCRIPT UNIFICADA Y COMPLETA -->
+    <!-- LÓGICA JAVASCRIPT CON CANDADOS Y SUPABASE -->
     <script>
         let startTime = null;
         let endTime = null;
         let timerInterval = null;
         let serviceData = {};
+        let photoBase64 = "";
 
         const ratesConfig = {
             camioneta: {
                 name: 'Camioneta (1.2 Toneladas)',
                 rate30Min: 312,
-                perMin: 312 / 30 // $10.40 / min
+                perMin: 312 / 30
             },
             camion: {
                 name: 'Camión (3 Toneladas)',
                 rate30Min: 936,
-                perMin: 936 / 30 // $31.20 / min
+                perMin: 936 / 30
             }
         };
 
@@ -350,18 +367,7 @@
                 const dd = String(today.getDate()).padStart(2, '0');
                 dateInput.value = `${yyyy}-${mm}-${dd}`;
             }
-            updateVehicleRatesNotice();
         };
-
-        function updateVehicleRatesNotice() {
-            const vehicle = document.getElementById('vehicleType').value;
-            const noticeEl = document.getElementById('rateNoticeText');
-            if (vehicle === 'camioneta') {
-                noticeEl.innerText = '$10.40/min ($312 cada 30 min)';
-            } else {
-                noticeEl.innerText = '$31.20/min ($936 cada 30 min)';
-            }
-        }
 
         function startService() {
             const driver = document.getElementById('driverName').value.trim();
@@ -400,7 +406,6 @@
             document.getElementById('displayVehicleName').innerText = config.name;
             document.getElementById('displayStartTime').innerText = serviceData.startTimeFormatted;
             document.getElementById('displayContractedTime').innerText = `${contractedMins} min`;
-            document.getElementById('displayAllowedTime').innerText = `${serviceData.allowedMinutes} min`;
 
             document.getElementById('setupSection').classList.add('hidden');
             document.getElementById('activeTimerSection').classList.remove('hidden');
@@ -427,10 +432,12 @@
             const extraCostText = document.getElementById('extraCostText');
 
             if (elapsedMins > serviceData.allowedMinutes) {
-                const extraMins = elapsedMins - serviceData.allowedMinutes;
+                let rawExtraMins = elapsedMins - serviceData.allowedMinutes;
+                // TOPE MÁXIMO ESTRICTO DE 30 MINUTOS EXTRAS
+                let extraMins = rawExtraMins > 30 ? 30 : rawExtraMins;
                 const extraCost = extraMins * serviceData.perMinRate;
 
-                extraMinutesText.innerText = `${extraMins} min`;
+                extraMinutesText.innerText = `${extraMins} / 30 min (Tope)`;
                 extraMinutesText.className = "font-black text-rose-600 text-sm";
                 
                 extraCostText.innerText = `$${extraCost.toFixed(2)} MXN`;
@@ -438,9 +445,9 @@
 
                 clockContainer.className = "bg-slate-950 border-2 border-rose-500/80 rounded-3xl p-6 sm:p-8 shadow-inner glow-rose transition-colors duration-300";
                 cortesiaBadge.className = "inline-flex items-center space-x-1.5 mt-3 bg-rose-500/20 text-rose-400 border border-rose-500/40 text-xs font-bold px-3.5 py-1.5 rounded-full animate-pulse-slow";
-                cortesiaBadge.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i><span>¡TIEMPO EXCEDIDO COMPUTANDO RECARGO!</span>`;
+                cortesiaBadge.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i><span>${rawExtraMins > 30 ? '🛑 TOPE MÁXIMO DE TIEMPO EXTRA ALCANZADO' : '⚠️ TIEMPO EXCEDIDO EN CURSO'}</span>`;
             } else {
-                extraMinutesText.innerText = `0 min`;
+                extraMinutesText.innerText = `0 / 30 min`;
                 extraMinutesText.className = "font-bold text-slate-800 text-sm";
                 
                 extraCostText.innerText = `$0.00 MXN`;
@@ -452,88 +459,113 @@
             }
         }
 
-        async function finishService() {
+        function goToAuditStep() {
             clearInterval(timerInterval);
             endTime = new Date();
-
-            const diffMs = endTime - startTime;
-            const totalMinutesReal = Math.floor(diffMs / (1000 * 60));
-
-            let extraMinutes = 0;
-            let extraCost = 0;
-
-            if (totalMinutesReal > serviceData.allowedMinutes) {
-                extraMinutes = totalMinutesReal - serviceData.allowedMinutes;
-                extraCost = extraMinutes * serviceData.perMinRate;
-            }
-
-            const baseCost = serviceData.blocks * serviceData.rate30Min;
-            const hoursCount = serviceData.blocks / 2;
-            const helpersCost = serviceData.helpers * (hoursCount * 200);
-            const grandTotal = baseCost + helpersCost + extraCost;
-
-            serviceData.endTimeFormatted = endTime.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            serviceData.totalMinutesReal = totalMinutesReal;
-            serviceData.extraMinutes = extraMinutes;
-            serviceData.baseCost = baseCost;
-            serviceData.helpersCost = helpersCost;
-            serviceData.extraCost = extraCost;
-            serviceData.grandTotal = grandTotal;
-
-            document.getElementById('summaryVehicle').innerText = serviceData.vehicleName;
-            document.getElementById('summaryStartTime').innerText = serviceData.startTimeFormatted;
-            document.getElementById('summaryEndTime').innerText = serviceData.endTimeFormatted;
-            document.getElementById('summaryTotalDuration').innerText = `${totalMinutesReal} Minutos`;
-            document.getElementById('summaryContractedTime').innerText = `${serviceData.contractedMinutes} Minutos`;
-            document.getElementById('summaryExtraMinutes').innerText = `${extraMinutes} min`;
-            document.getElementById('summaryBasePrice').innerText = `$${baseCost.toLocaleString('es-MX')} MXN`;
-            document.getElementById('summaryHelpersPrice').innerText = `$${helpersCost.toLocaleString('es-MX')} MXN`;
-            document.getElementById('summaryExtraCost').innerText = `$${extraCost.toFixed(2)} MXN`;
-            document.getElementById('summaryGrandTotal').innerText = `$${grandTotal.toFixed(2)} MXN`;
-
             document.getElementById('activeTimerSection').classList.add('hidden');
-            document.getElementById('finalSummarySection').classList.remove('hidden');
+            document.getElementById('auditSection').classList.remove('hidden');
+        }
 
-            try {
-                const { error } = await _supabase.from('servicios_tiempo').insert([{
-                    fecha: serviceData.date,
-                    socio: serviceData.driver,
-                    cliente: serviceData.client,
-                    vehiculo: serviceData.vehicleName,
-                    minutos_contratados: serviceData.contractedMinutes,
-                    minutos_reales: totalMinutesReal,
-                    minutos_extras: extraMinutes,
-                    costo_base: baseCost,
-                    costo_ayudantes: helpersCost,
-                    costo_extra: extraCost,
-                    total_pagado: grandTotal
-                }]);
-                if (error) console.error('Error al registrar en Supabase:', error.message);
-            } catch (e) {
-                console.warn('Excepción de Supabase:', e);
+        async function processAndFinishService() {
+            const photoInput = document.getElementById('evidencePhoto');
+            if (!photoInput.files || photoInput.files.length === 0) {
+                alert("Candado de Seguridad UINGO: Es obligatorio tomar o adjuntar la foto de evidencia de la entrega para continuar.");
+                return;
             }
+
+            const file = photoInput.files[0];
+            const reader = new FileReader();
+
+            reader.onloadend = async function() {
+                photoBase64 = reader.result;
+
+                const diffMs = endTime - startTime;
+                const totalMinutesReal = Math.floor(diffMs / (1000 * 60));
+
+                let extraMinutes = 0;
+                let extraCost = 0;
+
+                if (totalMinutesReal > serviceData.allowedMinutes) {
+                    let rawExtra = totalMinutesReal - serviceData.allowedMinutes;
+                    // APLICAR TOPE MÁXIMO DE 30 MINUTOS EXTRAS
+                    extraMinutes = rawExtra > 30 ? 30 : rawExtra;
+                    extraCost = extraMinutes * serviceData.perMinRate;
+                }
+
+                const baseCost = serviceData.blocks * serviceData.rate30Min;
+                const hoursCount = serviceData.blocks / 2;
+                const helpersCost = serviceData.helpers * (hoursCount * 200);
+                const grandTotal = baseCost + helpersCost + extraCost;
+
+                serviceData.endTimeFormatted = endTime.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                serviceData.totalMinutesReal = totalMinutesReal;
+                serviceData.extraMinutes = extraMinutes;
+                serviceData.baseCost = baseCost;
+                serviceData.helpersCost = helpersCost;
+                serviceData.extraCost = extraCost;
+                serviceData.grandTotal = grandTotal;
+
+                document.getElementById('summaryVehicle').innerText = serviceData.vehicleName;
+                document.getElementById('summaryStartTime').innerText = serviceData.startTimeFormatted;
+                document.getElementById('summaryEndTime').innerText = serviceData.endTimeFormatted;
+                document.getElementById('summaryTotalDuration').innerText = `${totalMinutesReal} Minutos`;
+                document.getElementById('summaryContractedTime').innerText = `${serviceData.contractedMinutes} Minutos`;
+                document.getElementById('summaryExtraMinutes').innerText = `${extraMinutes} min ${extraMinutes === 30 ? '(Alcanzó tope máx)' : ''}`;
+                document.getElementById('summaryBasePrice').innerText = `$${baseCost.toLocaleString('es-MX')} MXN`;
+                document.getElementById('summaryHelpersPrice').innerText = `$${helpersCost.toLocaleString('es-MX')} MXN`;
+                document.getElementById('summaryExtraCost').innerText = `$${extraCost.toFixed(2)} MXN`;
+                document.getElementById('summaryGrandTotal').innerText = `$${grandTotal.toFixed(2)} MXN`;
+
+                document.getElementById('auditSection').classList.add('hidden');
+                document.getElementById('finalSummarySection').classList.remove('hidden');
+
+                // Enviar a Supabase incluyendo la foto en Base64
+                try {
+                    const { error } = await _supabase.from('servicios_tiempo').insert([{
+                        fecha: serviceData.date,
+                        socio: serviceData.driver,
+                        cliente: serviceData.client,
+                        vehiculo: serviceData.vehicleName,
+                        minutos_contratados: serviceData.contractedMinutes,
+                        minutos_reales: totalMinutesReal,
+                        minutos_extras: extraMinutes,
+                        costo_base: baseCost,
+                        costo_ayudantes: helpersCost,
+                        costo_extra: extraCost,
+                        total_pagado: grandTotal,
+                        evidencia_foto: photoBase64
+                    }]);
+                    if (error) console.error('Error al registrar en Supabase:', error.message);
+                } catch (e) {
+                    console.warn('Excepción de Supabase:', e);
+                }
+            };
+
+            reader.readAsDataURL(file);
         }
 
         function sendWhatsAppReport() {
-            const msg = `📋 *REPORTE DE SERVICIO LOCAL UINGO*%0A%0A` +
+            const msg = `🛡️ *REPORTE AUDITADO UINGO*%0A%0A` +
                 `👤 *Socio / Chofer:* ${serviceData.driver}%0A` +
                 `🏢 *Cliente:* ${serviceData.client}%0A` +
                 `📅 *Fecha:* ${serviceData.date}%0A` +
                 `🚗 *Vehículo:* ${serviceData.vehicleName}%0A` +
                 `⏱️ *Contratado:* ${serviceData.contractedMinutes} min (+5m cortesía)%0A` +
                 `🕐 *Llegada:* ${serviceData.startTimeFormatted} | *Cierre:* ${serviceData.endTimeFormatted}%0A` +
-                `⏳ *Tiempo Real:* ${serviceData.totalMinutesReal} min (Excedido: ${serviceData.extraMinutes} min)%0A` +
+                `⏳ *Tiempo Real:* ${serviceData.totalMinutesReal} min (Extra cobrado: ${serviceData.extraMinutes} min máx)%0A` +
+                `📸 *Evidencia Fotográfica:* Registrada y Guardada en Base de Datos%0A` +
                 `💰 *Base Renta:* $${serviceData.baseCost.toLocaleString('es-MX')} MXN%0A` +
                 (serviceData.helpers > 0 ? `👥 *Ayudantes Extras:* $${serviceData.helpersCost.toLocaleString('es-MX')} MXN%0A` : '') +
                 (serviceData.extraCost > 0 ? `⚠️ *Recargo Tiempo Extra:* $${serviceData.extraCost.toFixed(2)} MXN%0A` : '') +
                 `💎 *TOTAL A COBRAR:* *$${serviceData.grandTotal.toFixed(2)} MXN*%0A%0A` +
-                `_Reporte oficial verificado mediante Panel de Socios UINGO._`;
+                `_Sistema antifraude y control de tiempos UINGO._`;
             window.open(`https://wa.me/523122416157?text=${msg}`, '_blank');
         }
 
         function resetApp() {
             document.getElementById('driverName').value = '';
             document.getElementById('clientName').value = '';
+            document.getElementById('evidencePhoto').value = '';
             document.getElementById('finalSummarySection').classList.add('hidden');
             document.getElementById('setupSection').classList.remove('hidden');
             window.scrollTo({ top: 0, behavior: 'smooth' });
