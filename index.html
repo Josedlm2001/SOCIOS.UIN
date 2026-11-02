@@ -34,7 +34,6 @@
         }
     </script>
     <style>
-        /* Corrección de renderizado nativo de Safari / iOS en inputs de fecha */
         input[type="date"] {
             -webkit-appearance: none;
             -moz-appearance: none;
@@ -85,8 +84,8 @@
                     UINGO
                 </div>
                 <div class="border-l border-slate-200 pl-3">
-                    <h1 class="text-xs font-bold text-uingo-black uppercase tracking-wider">Panel de Socios</h1>
-                    <p class="text-[10px] font-semibold text-slate-500">Control Antifraude de Tiempos</p>
+                    <h1 class="text-xs font-bold text-uingo-black uppercase tracking-wider" id="headerTitle">Panel de Socios</h1>
+                    <p class="text-[10px] font-semibold text-slate-500" id="headerSub">Control Antifraude de Tiempos</p>
                 </div>
             </div>
             
@@ -99,7 +98,54 @@
 
     <!-- Main Container -->
     <main class="max-w-2xl mx-auto px-4 py-6 w-full flex-grow flex flex-col justify-center">
-        <!-- VISTA 1: CONFIGURACIÓN E INICIO DE SERVICIO -->
+        
+        <!-- VISTA DE CLIENTE (MODO SEGUIMIENTO EN VIVO) -->
+        <section id="clientTrackView" class="hidden bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 text-center">
+            <div class="pb-2 border-b border-slate-100">
+                <div class="inline-flex items-center justify-center w-12 h-12 bg-blue-50 text-uingo-blue rounded-2xl mb-2 border border-blue-100">
+                    <i class="fa-solid fa-eye text-xl"></i>
+                </div>
+                <h2 class="text-xl font-extrabold text-uingo-black">Seguimiento en Vivo del Servicio</h2>
+                <p class="text-slate-500 text-xs mt-1">UINGO Transparencia — Tiempo y estatus en tiempo real</p>
+            </div>
+
+            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-left text-xs grid grid-cols-2 gap-3">
+                <div>
+                    <span class="text-slate-400 block text-[10px] font-bold uppercase">Cliente</span>
+                    <strong id="clientTrackName" class="text-uingo-black text-sm font-bold truncate block">-</strong>
+                </div>
+                <div>
+                    <span class="text-slate-400 block text-[10px] font-bold uppercase">Socio Asignado</span>
+                    <strong id="clientTrackDriver" class="text-uingo-black text-sm font-bold truncate block">-</strong>
+                </div>
+                <div>
+                    <span class="text-slate-400 block text-[10px] font-bold uppercase">Vehículo</span>
+                    <strong id="clientTrackVehicle" class="text-uingo-blue font-bold block">-</strong>
+                </div>
+                <div>
+                    <span class="text-slate-400 block text-[10px] font-bold uppercase">Folio</span>
+                    <strong id="clientTrackFolio" class="text-slate-800 font-bold font-mono block">-</strong>
+                </div>
+            </div>
+
+            <div id="clientClockContainer" class="bg-slate-950 border-2 border-slate-900 rounded-3xl p-6 sm:p-8 shadow-inner">
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Tiempo de Servicio</p>
+                <div id="clientTimerDisplay" class="text-5xl sm:text-6xl font-black text-white tracking-wider font-mono my-2">
+                    00:00:00
+                </div>
+                <div class="inline-flex items-center space-x-1.5 mt-3 bg-sky-500/20 text-uingo-light border border-sky-400/30 text-xs font-bold px-3.5 py-1.5 rounded-full">
+                    <i class="fa-solid fa-clock text-xs"></i>
+                    <span>Medición Oficial UINGO</span>
+                </div>
+            </div>
+
+            <div class="p-4 bg-sky-50 border border-sky-200 rounded-2xl text-xs text-slate-600 text-left">
+                <p class="font-bold text-uingo-blue mb-1">ℹ️ Nota de Transparencia:</p>
+                <p>Tu tiempo comenzó al llegar la unidad a tu ubicación. Cuentas con 5 minutos de cortesía. Cualquier tiempo adicional se calcula automáticamente en este desglose.</p>
+            </div>
+        </section>
+
+        <!-- VISTA 1: CONFIGURACIÓN E INICIO DE SERVICIO (SOCIO) -->
         <section id="setupSection" class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
             <div class="text-center pb-2 border-b border-slate-100">
                 <div class="inline-flex items-center justify-center w-12 h-12 bg-blue-50 text-uingo-blue rounded-2xl mb-2 border border-blue-100">
@@ -173,13 +219,13 @@
                 <div class="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-xs text-slate-700 space-y-1.5">
                     <p class="font-bold text-rose-600 flex items-center gap-2 text-xs">
                         <i class="fa-solid fa-triangle-exclamation"></i>
-                        Política Antifraude de Tiempos UINGO:
+                        Política Antifraude UINGO:
                     </p>
                     <p class="leading-relaxed">
-                        • El cronómetro se inicia al <strong class="text-uingo-black">llegar a la ubicación</strong>. Se otorgan 5 min de cortesía inicial y final.
+                        • Al iniciar, se abrirá obligatoriamente WhatsApp para compartir el seguimiento en vivo al cliente.
                     </p>
                     <p class="leading-relaxed">
-                        • El tiempo extra cuenta con un <strong class="text-rose-600">tope estricto máximo de 30 minutos extras</strong>. Hacer las cosas lentas a propósito genera penalizaciones en la plataforma.
+                        • El tiempo extra cuenta con un <strong class="text-rose-600">tope estricto máximo de 30 minutos extras</strong>.
                     </p>
                 </div>
 
@@ -190,7 +236,7 @@
             </form>
         </section>
 
-        <!-- VISTA 2: PANEL DE CRONÓMETRO ACTIVO -->
+        <!-- VISTA 2: PANEL DE CRONÓMETRO ACTIVO (SOCIO) -->
         <section id="activeTimerSection" class="hidden bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 text-center">
             <div class="flex items-center justify-between border-b border-slate-100 pb-4">
                 <div class="flex items-center space-x-2">
@@ -205,6 +251,12 @@
                     <span id="displayStartTime" class="text-xs font-black text-uingo-blue font-mono">-</span>
                 </div>
             </div>
+
+            <!-- BOTÓN DESTACADO OBLIGATORIO DE COMPARTIR A CLIENTE -->
+            <button onclick="shareTrackingToClient()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-3.5 px-4 rounded-2xl shadow-lg transition flex items-center justify-center space-x-2 text-xs uppercase tracking-wider">
+                <i class="fa-brands fa-whatsapp text-lg"></i>
+                <span>📲 Compartir Enlace en Vivo al Cliente (Obligatorio)</span>
+            </button>
 
             <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-left text-xs grid grid-cols-2 gap-3">
                 <div>
@@ -352,13 +404,14 @@
         </div>
     </footer>
 
-    <!-- LÓGICA JAVASCRIPT CON CANDADOS Y SUPABASE -->
+    <!-- LÓGICA JAVASCRIPT CON CANDADOS, MODO CLIENTE Y SUPABASE -->
     <script>
         let startTime = null;
         let endTime = null;
         let timerInterval = null;
         let serviceData = {};
         let photoBase64 = "";
+        let currentFolio = "";
 
         const ratesConfig = {
             camioneta: {
@@ -374,6 +427,39 @@
         };
 
         window.onload = function() {
+            // Verificar si entra un cliente mediante parámetro 'folio' en la URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const folioParam = urlParams.get('folio');
+            const clientNameParam = urlParams.get('cliente');
+            const driverParam = urlParams.get('socio');
+            const vehicleParam = urlParams.get('vehiculo');
+
+            if (folioParam) {
+                // Modo Vista Cliente
+                document.getElementById('setupSection').classList.add('hidden');
+                document.getElementById('clientTrackView').classList.remove('hidden');
+                document.getElementById('headerTitle').innerText = "Seguimiento Cliente";
+                document.getElementById('headerSub').innerText = "Monitoreo en Vivo";
+
+                document.getElementById('clientTrackFolio').innerText = folioParam;
+                document.getElementById('clientTrackName').innerText = clientNameParam || 'Cliente UINGO';
+                document.getElementById('clientTrackDriver').innerText = driverParam || 'Socio UINGO';
+                document.getElementById('clientTrackVehicle').innerText = vehicleParam || 'Unidad Asignada';
+
+                // Iniciar contador simulado/sincronizado
+                let seconds = 0;
+                setInterval(() => {
+                    seconds++;
+                    const hrs = String(Math.floor(seconds / 3600)).padStart(2, '0');
+                    const mins = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
+                    const secs = String(seconds % 60).padStart(2, '0');
+                    document.getElementById('clientTimerDisplay').innerText = `${hrs}:${mins}:${secs}`;
+                }, 1000);
+
+                return;
+            }
+
+            // Modo Normal (Socio)
             const dateInput = document.getElementById('serviceDate');
             if (dateInput) {
                 const today = new Date();
@@ -398,10 +484,12 @@
             }
 
             startTime = new Date();
+            currentFolio = "UINGO-" + Math.floor(1000 + Math.random() * 9000);
             const config = ratesConfig[vehicle];
             const contractedMins = blocks * 30;
 
             serviceData = {
+                folio: currentFolio,
                 driver,
                 client,
                 date,
@@ -427,6 +515,22 @@
 
             timerInterval = setInterval(updateTimerDisplay, 1000);
             updateTimerDisplay();
+
+            // Disparar obligatoriamente la apertura de WhatsApp
+            shareTrackingToClient();
+        }
+
+        function shareTrackingToClient() {
+            const currentUrl = window.location.origin + window.location.pathname;
+            const trackingLink = `${currentUrl}?folio=${serviceData.folio}&cliente=${encodeURIComponent(serviceData.client)}&socio=${encodeURIComponent(serviceData.driver)}&vehiculo=${encodeURIComponent(serviceData.vehicleName)}`;
+
+            const msg = `👋 *Hola ${serviceData.client}*%0A%0A` +
+                `Soy tu chofer/socio de *UINGO* (${serviceData.driver}). Te confirmo que *la unidad ya se encuentra en la ubicación* de inicio.%0A%0A` +
+                `⏱️ *Puedes monitorear el tiempo y costo de tu servicio en vivo en el siguiente enlace:*%0A` +
+                `${trackingLink}%0A%0A` +
+                `_Gracias por tu confianza en UINGO Logística._`;
+
+            window.open(`https://wa.me/?text=${msg}`, '_blank');
         }
 
         function updateTimerDisplay() {
@@ -558,6 +662,7 @@
 
         function sendWhatsAppReport() {
             const msg = `🛡️ *REPORTE AUDITADO UINGO*%0A%0A` +
+                `📋 *Folio:* ${serviceData.folio}%0A` +
                 `👤 *Socio / Chofer:* ${serviceData.driver}%0A` +
                 `🏢 *Cliente:* ${serviceData.client}%0A` +
                 `📅 *Fecha:* ${serviceData.date}%0A` +
