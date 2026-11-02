@@ -34,6 +34,16 @@
         }
     </script>
     <style>
+        /* Corrección de renderizado nativo de Safari / iOS en inputs de fecha */
+        input[type="date"] {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            min-height: 46px;
+        }
+        select, input[type="text"] {
+            min-height: 46px;
+        }
         .glow-blue {
             box-shadow: 0 0 25px -5px rgba(14, 88, 255, 0.4);
         }
@@ -66,6 +76,7 @@
         const SUPABASE_ANON_KEY = 'sb_publishable_bigBIqjdy-EfvKtxS349yA_RcKqFrOA';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     </script>
+
     <!-- Header Navbar -->
     <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-md">
         <div class="max-w-2xl mx-auto px-4 h-16 flex items-center justify-between">
@@ -98,63 +109,66 @@
                 <p class="text-slate-500 text-xs mt-1">Registra los datos antes de iniciar la marcación por tiempo.</p>
             </div>
             <form id="serviceForm" onsubmit="event.preventDefault(); startService();" class="space-y-4">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Socio / Chofer *</label>
-                        <div class="relative">
-                            <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
-                                <i class="fa-solid fa-id-card text-sm"></i>
-                            </span>
-                            <input type="text" id="driverName" required placeholder="Ej. Carlos Mendoza" class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-10 pr-4 py-3 text-sm text-uingo-black focus:outline-none focus:border-uingo-blue focus:ring-1 focus:ring-uingo-blue transition">
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Nombre del Cliente *</label>
-                        <div class="relative">
-                            <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
-                                <i class="fa-solid fa-user text-sm"></i>
-                            </span>
-                            <input type="text" id="clientName" required placeholder="Ej. Roberto Gómez" class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-10 pr-4 py-3 text-sm text-uingo-black focus:outline-none focus:border-uingo-blue focus:ring-1 focus:ring-uingo-blue transition">
-                        </div>
+                
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Socio / Chofer *</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                            <i class="fa-solid fa-id-card text-sm"></i>
+                        </span>
+                        <input type="text" id="driverName" required placeholder="Ej. Carlos Mendoza" class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-10 pr-4 py-3 text-sm text-uingo-black focus:outline-none focus:border-uingo-blue focus:ring-1 focus:ring-uingo-blue transition">
                     </div>
                 </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Fecha del Servicio *</label>
-                        <input type="date" id="serviceDate" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm text-uingo-black focus:outline-none focus:border-uingo-blue transition">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Tipo de Vehículo *</label>
-                        <select id="vehicleType" onchange="updateVehicleRatesNotice()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm text-uingo-blue font-bold focus:outline-none focus:border-uingo-blue transition">
-                            <option value="camioneta">Camioneta 1.2T — $312 / 30 min</option>
-                            <option value="camion">Camión 3T — $936 / 30 min</option>
-                        </select>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Nombre del Cliente *</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                            <i class="fa-solid fa-user text-sm"></i>
+                        </span>
+                        <input type="text" id="clientName" required placeholder="Ej. Roberto Gómez" class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-10 pr-4 py-3 text-sm text-uingo-black focus:outline-none focus:border-uingo-blue focus:ring-1 focus:ring-uingo-blue transition">
                     </div>
                 </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Tiempo Solicitado *</label>
-                        <select id="contractedBlocks" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm text-uingo-black font-semibold focus:outline-none focus:border-uingo-blue transition">
-                            <option value="1">30 Minutos (1 bloque)</option>
-                            <option value="2">1 Hora (60 min)</option>
-                            <option value="3">1 Hora 30 Minutos (90 min)</option>
-                            <option value="4">2 Horas (120 min)</option>
-                            <option value="5">2 Horas 30 Minutos</option>
-                            <option value="6">3 Horas (180 min)</option>
-                            <option value="8">4 Horas (240 min)</option>
-                            <option value="10">5 Horas (300 min)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Cargadores Extras</label>
-                        <select id="extraHelpers" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm text-uingo-black focus:outline-none focus:border-uingo-blue transition">
-                            <option value="0">Solo Chofer (Incluido)</option>
-                            <option value="1">1 Ayudante Extra ($200/hr)</option>
-                            <option value="2">2 Ayudantes Extras ($400/hr)</option>
-                            <option value="3">3 Ayudantes Extras ($600/hr)</option>
-                        </select>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Fecha del Servicio *</label>
+                    <div class="relative w-full">
+                        <input type="date" id="serviceDate" required class="w-full max-w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm text-uingo-black font-medium focus:outline-none focus:border-uingo-blue transition box-border">
                     </div>
                 </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Tipo de Vehículo *</label>
+                    <select id="vehicleType" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm text-uingo-blue font-bold focus:outline-none focus:border-uingo-blue transition">
+                        <option value="camioneta">Camioneta 1.2T — $312 / 30 min</option>
+                        <option value="camion">Camión 3T — $936 / 30 min</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Tiempo Solicitado *</label>
+                    <select id="contractedBlocks" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm text-uingo-black font-bold focus:outline-none focus:border-uingo-blue transition">
+                        <option value="1">30 Minutos (1 bloque)</option>
+                        <option value="2">1 Hora (60 min)</option>
+                        <option value="3">1 Hora 30 Minutos (90 min)</option>
+                        <option value="4">2 Horas (120 min)</option>
+                        <option value="5">2 Horas 30 Minutos</option>
+                        <option value="6">3 Horas (180 min)</option>
+                        <option value="8">4 Horas (240 min)</option>
+                        <option value="10">5 Horas (300 min)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Cargadores Extras</label>
+                    <select id="extraHelpers" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm text-uingo-black focus:outline-none focus:border-uingo-blue transition">
+                        <option value="0">Solo Chofer (Incluido)</option>
+                        <option value="1">1 Ayudante Extra ($200/hr)</option>
+                        <option value="2">2 Ayudantes Extras ($400/hr)</option>
+                        <option value="3">3 Ayudantes Extras ($600/hr)</option>
+                    </select>
+                </div>
+
                 <!-- Aviso Informativo Antifraude -->
                 <div class="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-xs text-slate-700 space-y-1.5">
                     <p class="font-bold text-rose-600 flex items-center gap-2 text-xs">
@@ -168,6 +182,7 @@
                         • El tiempo extra cuenta con un <strong class="text-rose-600">tope estricto máximo de 30 minutos extras</strong>. Hacer las cosas lentas a propósito genera penalizaciones en la plataforma.
                     </p>
                 </div>
+
                 <button type="submit" class="w-full bg-uingo-blue hover:bg-uingo-mid text-white font-extrabold py-4 px-6 rounded-2xl shadow-xl transition-all duration-200 transform active:scale-95 flex items-center justify-center space-x-2 text-base glow-blue">
                     <i class="fa-solid fa-play text-lg"></i>
                     <span>LLEGADA A UBICACIÓN - INICIAR CRONÓMETRO</span>
@@ -269,7 +284,7 @@
                 <h3 class="text-2xl font-black text-uingo-black">Servicio Concluido y Auditado</h3>
                 <p class="text-slate-500 text-xs mt-1">Desglose protegido con candados antifraude</p>
             </div>
-            <!-- Tabla Resumen -->
+
             <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5 text-xs space-y-3">
                 <div class="flex justify-between pb-2.5 border-b border-slate-200">
                     <span class="text-slate-500">Vehículo Utilizado:</span>
@@ -316,7 +331,7 @@
                     <span id="summaryGrandTotal" class="font-black text-uingo-blue text-2xl font-mono">$0.00 MXN</span>
                 </div>
             </div>
-            <!-- Botones de Acción -->
+
             <div class="space-y-3">
                 <button onclick="sendWhatsAppReport()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-4 px-6 rounded-2xl shadow-xl transition flex items-center justify-center space-x-2 text-sm glow-blue">
                     <i class="fa-brands fa-whatsapp text-xl"></i>
@@ -433,7 +448,6 @@
 
             if (elapsedMins > serviceData.allowedMinutes) {
                 let rawExtraMins = elapsedMins - serviceData.allowedMinutes;
-                // TOPE MÁXIMO ESTRICTO DE 30 MINUTOS EXTRAS
                 let extraMins = rawExtraMins > 30 ? 30 : rawExtraMins;
                 const extraCost = extraMins * serviceData.perMinRate;
 
@@ -487,7 +501,6 @@
 
                 if (totalMinutesReal > serviceData.allowedMinutes) {
                     let rawExtra = totalMinutesReal - serviceData.allowedMinutes;
-                    // APLICAR TOPE MÁXIMO DE 30 MINUTOS EXTRAS
                     extraMinutes = rawExtra > 30 ? 30 : rawExtra;
                     extraCost = extraMinutes * serviceData.perMinRate;
                 }
@@ -519,7 +532,6 @@
                 document.getElementById('auditSection').classList.add('hidden');
                 document.getElementById('finalSummarySection').classList.remove('hidden');
 
-                // Enviar a Supabase incluyendo la foto en Base64
                 try {
                     const { error } = await _supabase.from('servicios_tiempo').insert([{
                         fecha: serviceData.date,
