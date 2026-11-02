@@ -3,256 +3,365 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UINGO Socio - Control de Servicios por Tiempo (Anti-Fraude)</title>
+    <title>UINGO Socio - Control de Servicios por Tiempo</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <!-- Supabase JS Client -->
+    <!-- Supabase JS Client Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        uingo: {
+                            blue: '#0e58ff',
+                            light: '#0bb9fe',
+                            mid: '#0d84fe',
+                            gray: '#b4b4b4',
+                            white: '#ffffff',
+                            black: '#000000'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glow-blue {
+            box-shadow: 0 0 25px -5px rgba(14, 88, 255, 0.4);
+        }
+        .glow-cyan {
+            box-shadow: 0 0 25px -5px rgba(11, 185, 254, 0.4);
+        }
+        .glow-rose {
+            box-shadow: 0 0 25px -5px rgba(244, 63, 94, 0.3);
+        }
+        .animate-pulse-slow {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #000000;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #b4b4b4;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-900 min-h-full flex flex-col justify-between font-sans antialiased selection:bg-uingo-blue selection:text-white">
+    <!-- Supabase Config Initialization -->
     <script>
         const SUPABASE_URL = 'https://tlcbhbigtxhalgebrwqk.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_bigBIqjdy-EfvKtxS349yA_RcKqFrOA';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     </script>
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-        @keyframes pulse-slow {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
-        }
-        .alert-pulse {
-            animation: pulse-slow 1.5s infinite;
-        }
-    </style>
-</head>
-<body class="bg-slate-950 text-slate-100 min-h-full flex flex-col justify-between p-4 sm:p-6">
-
-    <!-- Header -->
-    <header class="max-w-md mx-auto w-full flex justify-between items-center pb-4 border-b border-slate-800">
-        <div class="flex items-center space-x-2">
-            <div class="bg-amber-500 text-slate-950 font-black px-2.5 py-1 rounded-lg text-lg tracking-wider">
-                UINGO
+    <!-- Header Navbar -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-md">
+        <div class="max-w-2xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="bg-uingo-blue text-white font-black text-xl px-3 py-1 rounded-xl tracking-wider shadow-md">
+                    UINGO
+                </div>
+                <div class="border-l border-slate-200 pl-3">
+                    <h1 class="text-xs font-bold text-uingo-black uppercase tracking-wider">Panel de Socios</h1>
+                    <p class="text-[10px] font-semibold text-slate-500">Control de Tiempo Local</p>
+                </div>
             </div>
-            <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Panel Socio (Auditado)</span>
-        </div>
-        <div class="text-right">
-            <p class="text-[10px] text-slate-400 font-bold uppercase">Zona Horaria</p>
-            <p class="text-xs font-extrabold text-amber-400">CDMX / GDL (UTC-6)</p>
+            
+            <div class="flex items-center space-x-2 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-full text-right">
+                <span class="w-2 h-2 rounded-full bg-uingo-light animate-pulse"></span>
+                <span class="text-[11px] font-extrabold text-slate-700">CDMX / GDL</span>
+            </div>
         </div>
     </header>
 
-    <!-- Main Card -->
-    <main class="max-w-md mx-auto w-full my-6 bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-6">
-
-        <!-- Formulario de Inicio -->
-        <div id="setupForm" class="space-y-4">
-            <h2 class="text-lg font-bold text-white flex items-center gap-2">
-                <i class="fa-solid fa-shield-halved text-amber-500"></i>
-                Inicio de Servicio Local (Controlado)
-            </h2>
-
-            <div>
-                <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Nombre del Socio / Chofer *</label>
-                <input type="text" id="driverName" placeholder="Ej. Carlos Mendoza" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-amber-500">
+    <!-- Main Container -->
+    <main class="max-w-2xl mx-auto px-4 py-6 w-full flex-grow flex flex-col justify-center">
+        <!-- VISTA 1: CONFIGURACIÓN E INICIO DE SERVICIO -->
+        <section id="setupSection" class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
+            <div class="text-center pb-2 border-b border-slate-100">
+                <div class="inline-flex items-center justify-center w-12 h-12 bg-blue-50 text-uingo-blue rounded-2xl mb-2 border border-blue-100">
+                    <i class="fa-solid fa-truck-clock text-xl"></i>
+                </div>
+                <h2 class="text-xl font-extrabold text-uingo-black">Iniciar Registro de Servicio</h2>
+                <p class="text-slate-500 text-xs mt-1">Ingresa los datos antes de iniciar la marcación por tiempo.</p>
             </div>
+            <form id="serviceForm" onsubmit="event.preventDefault(); startService();" class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Socio / Chofer *</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                                <i class="fa-solid fa-id-card text-sm"></i>
+                            </span>
+                            <input type="text" id="driverName" required placeholder="Ej. Carlos Mendoza" class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-10 pr-4 py-3 text-sm text-uingo-black focus:outline-none focus:border-uingo-blue focus:ring-1 focus:ring-uingo-blue transition">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Nombre del Cliente *</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                                <i class="fa-solid fa-user text-sm"></i>
+                            </span>
+                            <input type="text" id="clientName" required placeholder="Ej. Roberto Gómez" class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-10 pr-4 py-3 text-sm text-uingo-black focus:outline-none focus:border-uingo-blue focus:ring-1 focus:ring-uingo-blue transition">
+                        </div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Fecha del Servicio *</label>
+                        <input type="date" id="serviceDate" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm text-uingo-black focus:outline-none focus:border-uingo-blue transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Tipo de Vehículo *</label>
+                        <select id="vehicleType" onchange="updateVehicleRatesNotice()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm text-uingo-blue font-bold focus:outline-none focus:border-uingo-blue transition">
+                            <option value="camioneta">Camioneta 1.2T — $312 / 30 min</option>
+                            <option value="camion">Camión 3T — $936 / 30 min</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Tiempo Solicitado *</label>
+                        <select id="contractedBlocks" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm text-uingo-black font-semibold focus:outline-none focus:border-uingo-blue transition">
+                            <option value="1">30 Minutos (1 bloque)</option>
+                            <option value="2">1 Hora (60 min)</option>
+                            <option value="3">1 Hora 30 Minutos (90 min)</option>
+                            <option value="4">2 Horas (120 min)</option>
+                            <option value="5">2 Horas 30 Minutos</option>
+                            <option value="6">3 Horas (180 min)</option>
+                            <option value="8">4 Horas (240 min)</option>
+                            <option value="10">5 Horas (300 min)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Cargadores Extras</label>
+                        <select id="extraHelpers" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm text-uingo-black focus:outline-none focus:border-uingo-blue transition">
+                            <option value="0">Solo Chofer (Incluido)</option>
+                            <option value="1">1 Ayudante Extra ($200/hr)</option>
+                            <option value="2">2 Ayudantes Extras ($400/hr)</option>
+                            <option value="3">3 Ayudantes Extras ($600/hr)</option>
+                        </select>
+                    </div>
+                </div>
+                <!-- Aviso Informativo de Reglas de Cobro -->
+                <div class="p-4 bg-sky-50 border border-sky-200 rounded-2xl text-xs text-slate-700 space-y-1.5">
+                    <p class="font-bold text-uingo-blue flex items-center gap-2 text-xs">
+                        <i class="fa-solid fa-circle-info"></i>
+                        Regla Oficial UINGO de Medición de Tiempo:
+                    </p>
+                    <p class="leading-relaxed">
+                        • El cronómetro debe iniciarse exactamente al <strong class="text-uingo-black">llegar la unidad a la ubicación</strong>.
+                    </p>
+                    <p class="leading-relaxed">
+                        • Se incluyen automáticamente <strong class="text-uingo-black">5 minutos de cortesía</strong> al inicio y al final antes de computar recargos.
+                    </p>
+                    <p class="leading-relaxed">
+                        • Transcurrido el límite, el cobro excedente es estrictamente proporcional: <span id="rateNoticeText" class="font-bold text-uingo-blue">$10.40/min (Camioneta)</span>.
+                    </p>
+                </div>
+                <button type="submit" class="w-full bg-uingo-blue hover:bg-uingo-mid text-white font-extrabold py-4 px-6 rounded-2xl shadow-xl transition-all duration-200 transform active:scale-95 flex items-center justify-center space-x-2 text-base glow-blue">
+                    <i class="fa-solid fa-play text-lg"></i>
+                    <span>LLEGADA A UBICACIÓN - INICIAR CRONÓMETRO</span>
+                </button>
+            </form>
+        </section>
 
-            <div>
-                <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Nombre del Cliente *</label>
-                <input type="text" id="clientName" placeholder="Ej. Roberto Gómez" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-amber-500">
+        <!-- VISTA 2: PANEL DE CRONÓMETRO ACTIVO -->
+        <section id="activeTimerSection" class="hidden bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 text-center">
+            <!-- Header Status -->
+            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                <div class="flex items-center space-x-2">
+                    <span class="relative flex h-3 w-3">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-uingo-light opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-3 w-3 bg-uingo-blue"></span>
+                    </span>
+                    <span class="text-xs font-bold text-uingo-blue uppercase tracking-wider">Servicio en Curso</span>
+                </div>
+                <div class="text-right">
+                    <span class="text-[10px] text-slate-400 uppercase block font-bold">Llegada</span>
+                    <span id="displayStartTime" class="text-xs font-black text-uingo-blue font-mono">-</span>
+                </div>
             </div>
-
-            <div class="grid grid-cols-2 gap-3">
+            <!-- Ficha de Datos Rápidos -->
+            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-left text-xs grid grid-cols-2 gap-3">
                 <div>
-                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Fecha *</label>
-                    <input type="date" id="serviceDate" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-3 text-xs text-white focus:outline-none focus:border-amber-500">
+                    <span class="text-slate-400 block text-[10px] font-bold uppercase">Cliente</span>
+                    <strong id="displayClientName" class="text-uingo-black text-sm font-bold truncate block">-</strong>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Vehículo Asignado *</label>
-                    <select id="vehicleType" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-3 text-xs text-white focus:outline-none focus:border-amber-500 font-bold">
-                        <option value="camioneta">Camioneta 1.2T ($312/30m)</option>
-                        <option value="camion">Camión 3T ($936/30m)</option>
-                    </select>
+                    <span class="text-slate-400 block text-[10px] font-bold uppercase">Chofer</span>
+                    <strong id="displayDriverName" class="text-uingo-black text-sm font-bold truncate block">-</strong>
+                </div>
+                <div>
+                    <span class="text-slate-400 block text-[10px] font-bold uppercase">Vehículo</span>
+                    <strong id="displayVehicleName" class="text-uingo-blue font-bold block">-</strong>
+                </div>
+                <div>
+                    <span class="text-slate-400 block text-[10px] font-bold uppercase">Contratado</span>
+                    <strong id="displayContractedTime" class="text-uingo-mid font-bold block">-</strong>
                 </div>
             </div>
-
-            <div>
-                <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Tiempo Solicitado por el Cliente *</label>
-                <select id="contractedBlocks" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-amber-500 font-bold text-amber-400">
-                    <option value="1">30 Minutos</option>
-                    <option value="2">1 Hora (60 min)</option>
-                    <option value="3">1 Hora 30 Minutos</option>
-                    <option value="4">2 Horas (120 min)</option>
-                    <option value="5">2 Horas 30 Minutos</option>
-                    <option value="6">3 Horas</option>
-                    <option value="8">4 Horas</option>
-                    <option value="10">5 Horas</option>
-                </select>
+            <!-- Display de Reloj en Vivo -->
+            <div id="clockContainer" class="bg-slate-950 border-2 border-slate-900 rounded-3xl p-6 sm:p-8 shadow-inner transition-colors duration-300">
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Tiempo Transcurrido</p>
+                <div id="timerDisplay" class="text-5xl sm:text-6xl font-black text-white tracking-wider font-mono my-2">
+                    00:00:00
+                </div>
+                <div id="cortesiaBadge" class="inline-flex items-center space-x-1.5 mt-3 bg-sky-500/20 text-uingo-light border border-sky-400/30 text-xs font-bold px-3.5 py-1.5 rounded-full">
+                    <i class="fa-solid fa-shield-halved text-xs"></i>
+                    <span>Tolerancia Activa (5 min cortesía)</span>
+                </div>
             </div>
-
-            <div>
-                <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Ayudantes Extras</label>
-                <select id="extraHelpers" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-amber-500">
-                    <option value="0">Solo Chofer (Incluido)</option>
-                    <option value="1">1 Ayudante Extra ($200/hr)</option>
-                    <option value="2">2 Ayudantes Extras ($400/hr)</option>
-                    <option value="3">3 Ayudantes Extras ($600/hr)</option>
-                </select>
+            <!-- Panel Dinámico de Excedente -->
+            <div id="overtimeCard" class="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs space-y-2">
+                <div class="flex justify-between items-center">
+                    <span class="text-slate-500 font-medium">Tiempo Límite (+5m Cortesía):</span>
+                    <span id="displayAllowedTime" class="font-bold text-uingo-black font-mono">-</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-slate-500 font-medium">Minutos Excedidos:</span>
+                    <span id="extraMinutesText" class="font-black text-slate-800 text-sm">0 min</span>
+                </div>
+                <div class="pt-2 border-t border-slate-200 flex justify-between items-center">
+                    <span class="text-slate-700 font-bold">Recargo Extra Estimado:</span>
+                    <span id="extraCostText" class="font-black text-base text-slate-800">$0.00 MXN</span>
+                </div>
             </div>
-
-            <div class="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-xs text-rose-300 flex items-start space-x-2">
-                <i class="fa-solid fa-triangle-exclamation text-rose-400 mt-0.5"></i>
-                <p><strong>Aviso de Política UINGO:</strong> El tiempo extra cuenta con un <strong>máximo estricto de 30 minutos</strong> de tolerancia cobrable. Hacer las cosas lento a propósito genera penalizaciones en la plataforma.</p>
-            </div>
-
-            <button onclick="startService()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-4 rounded-2xl shadow-lg transition flex items-center justify-center space-x-2 text-base">
-                <i class="fa-solid fa-play"></i>
-                <span>LLEGADA A UBICACIÓN - INICIAR</span>
+            <button onclick="finishService()" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-extrabold py-4 px-6 rounded-2xl shadow-xl transition-all duration-200 transform active:scale-95 flex items-center justify-center space-x-2 text-base glow-rose">
+                <i class="fa-solid fa-flag-checkered text-lg"></i>
+                <span>FINALIZAR TRABAJO Y GENERAR COBRO</span>
             </button>
-        </div>
+        </section>
 
-        <!-- Panel de Cronómetro Activo -->
-        <div id="activeTimerSection" class="hidden space-y-6 text-center">
-            <div class="bg-slate-950 border border-slate-800 rounded-2xl p-4 text-left text-xs space-y-1">
-                <p class="text-slate-400">Cliente: <strong class="text-white" id="displayClientName">-</strong></p>
-                <p class="text-slate-400">Chofer: <strong class="text-white" id="displayDriverName">-</strong></p>
-                <p class="text-slate-400">Vehículo: <strong class="text-amber-400" id="displayVehicleName">-</strong></p>
-                <p class="text-slate-400">Llegada / Inicio: <strong class="text-amber-400" id="displayStartTime">-</strong></p>
-                <p class="text-slate-400">Tiempo Solicitado: <strong class="text-emerald-400" id="displayContractedTime">-</strong></p>
+        <!-- VISTA 3: RESUMEN FINAL Y TRANSPARENCIA DE PAGO -->
+        <section id="finalSummarySection" class="hidden bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
+            <div class="text-center pb-2 border-b border-slate-100">
+                <div class="w-14 h-14 bg-blue-50 text-uingo-blue rounded-full flex items-center justify-center mx-auto mb-2 text-2xl border border-blue-100">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <h3 class="text-2xl font-black text-uingo-black">Servicio Concluido</h3>
+                <p class="text-slate-500 text-xs mt-1">Desglose de transparencia total para Cliente y Socio</p>
             </div>
-
-            <!-- Display Reloj -->
-            <div id="clockContainer" class="bg-black border-2 border-amber-500/50 rounded-3xl p-6 shadow-inner transition-all">
-                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Tiempo Transcurrido</p>
-                <div class="text-5xl font-black text-white tracking-wider font-mono" id="timerDisplay">00:00:00</div>
-                <div id="cortesiaBadge" class="inline-block mt-3 bg-blue-500/20 text-blue-400 border border-blue-500/40 text-[11px] font-bold px-3 py-1 rounded-full">
-                    🛡️ En margen de tolerancia (5 min)
+            <!-- Tabla Resumen -->
+            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5 text-xs space-y-3">
+                <div class="flex justify-between pb-2.5 border-b border-slate-200">
+                    <span class="text-slate-500">Vehículo Utilizado:</span>
+                    <span id="summaryVehicle" class="font-bold text-uingo-blue">-</span>
                 </div>
-            </div>
-
-            <!-- Status Dinámico Excedente -->
-            <div id="overtimeCard" class="bg-slate-950 border border-slate-800 rounded-2xl p-4 text-xs space-y-2">
-                <div class="flex justify-between">
-                    <span class="text-slate-400">Minutos Excedidos (Máx 30m):</span>
-                    <span class="font-bold text-rose-400" id="extraMinutesText">0 / 30 min</span>
+                <div class="flex justify-between pb-2.5 border-b border-slate-200">
+                    <span class="text-slate-500">Hora de Llegada (Inicio):</span>
+                    <span id="summaryStartTime" class="font-bold text-uingo-black font-mono">-</span>
                 </div>
-                <div class="flex justify-between">
-                    <span class="text-slate-400">Costo Extra por Tiempo:</span>
-                    <span class="font-bold text-rose-400" id="extraCostText">$0.00 MXN</span>
+                <div class="flex justify-between pb-2.5 border-b border-slate-200">
+                    <span class="text-slate-500">Hora de Cierre (Final):</span>
+                    <span id="summaryEndTime" class="font-bold text-uingo-black font-mono">-</span>
                 </div>
-            </div>
-
-            <button onclick="showFinalStep()" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-extrabold py-4 rounded-2xl shadow-lg transition flex items-center justify-center space-x-2 text-base">
-                <i class="fa-solid fa-stop"></i>
-                <span>FINALIZAR TRABAJO</span>
-            </button>
-        </div>
-
-        <!-- Paso de Auditoría y Evidencia (Candado Antifraude) -->
-        <div id="auditStepSection" class="hidden space-y-5">
-            <div class="text-center">
-                <div class="w-12 h-12 bg-amber-500/20 text-amber-400 rounded-full flex items-center justify-center mx-auto mb-2 text-xl border border-amber-500/30">
-                    <i class="fa-solid fa-camera"></i>
+                <div class="flex justify-between pb-2.5 border-b border-slate-200">
+                    <span class="text-slate-500">Tiempo Transcurrido Real:</span>
+                    <span id="summaryTotalDuration" class="font-black text-uingo-blue text-sm font-mono">-</span>
                 </div>
-                <h3 class="text-lg font-extrabold text-white">Evidencia de Cierre Obligatoria</h3>
-                <p class="text-xs text-slate-400 mt-1">Para proteger al cliente y al socio, sube una foto de entrega o conformidad.</p>
-            </div>
-
-            <div class="space-y-3">
-                <label class="block text-xs font-bold text-slate-400 uppercase">Tomar o Adjuntar Foto de Evidencia *</label>
-                <input type="file" id="evidencePhoto" accept="image/*" capture="environment" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-3 text-xs text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-amber-500 file:text-slate-950 hover:file:bg-amber-400 cursor-pointer">
-                <p class="text-[10px] text-amber-400 font-medium">⚠️ Sin esta foto el sistema no generará el reporte final ni guardará el servicio.</p>
-            </div>
-
-            <button onclick="processAndFinishService()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-4 rounded-2xl shadow-lg transition flex items-center justify-center space-x-2 text-base">
-                <i class="fa-solid fa-circle-check"></i>
-                <span>CONFIRMAR Y VER RESUMEN</span>
-            </button>
-        </div>
-
-        <!-- Resumen Final y Transparencia -->
-        <div id="finalSummarySection" class="hidden space-y-5">
-            <div class="text-center">
-                <div class="w-12 h-12 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-2 text-xl border border-emerald-500/30">
-                    <i class="fa-solid fa-check"></i>
+                <div class="flex justify-between pb-2.5 border-b border-slate-200">
+                    <span class="text-slate-500">Tiempo Solicitado Contratado:</span>
+                    <span id="summaryContractedTime" class="font-bold text-uingo-black">-</span>
                 </div>
-                <h3 class="text-xl font-extrabold text-white">Servicio Concluido y Auditado</h3>
-                <p class="text-xs text-slate-400 mt-1">Desglose exacto de cobro transparente</p>
-            </div>
-
-            <div class="bg-slate-950 border border-slate-800 rounded-2xl p-4 text-xs space-y-3">
-                <div class="flex justify-between pb-2 border-b border-slate-800">
-                    <span class="text-slate-400">Vehículo Utilizado:</span>
-                    <span class="font-bold text-amber-400" id="summaryVehicle">-</span>
+                <div class="flex justify-between pb-2.5 border-b border-slate-200">
+                    <span class="text-slate-500">Tolerancia Aplicada:</span>
+                    <span class="font-bold text-uingo-mid">5 Minutos Cortesía</span>
                 </div>
-                <div class="flex justify-between pb-2 border-b border-slate-800">
-                    <span class="text-slate-400">Llegada (Inicio):</span>
-                    <span class="font-bold text-white" id="summaryStartTime">-</span>
+                <div class="flex justify-between pb-2.5 border-b border-slate-200">
+                    <span class="text-slate-500">Tiempo Extra Cobrable:</span>
+                    <span id="summaryExtraMinutes" class="font-extrabold text-rose-600">-</span>
                 </div>
-                <div class="flex justify-between pb-2 border-b border-slate-800">
-                    <span class="text-slate-400">Hora de Cierre:</span>
-                    <span class="font-bold text-white" id="summaryEndTime">-</span>
+                <div class="flex justify-between pb-2.5 border-b border-slate-200">
+                    <span class="text-slate-500">Cobro Base Inicial:</span>
+                    <span id="summaryBasePrice" class="font-bold text-uingo-black">$0.00 MXN</span>
                 </div>
-                <div class="flex justify-between pb-2 border-b border-slate-800">
-                    <span class="text-slate-400">Tiempo Total Transcurrido:</span>
-                    <span class="font-bold text-amber-400" id="summaryTotalDuration">-</span>
+                <div class="flex justify-between pb-2.5 border-b border-slate-200">
+                    <span class="text-slate-500">Ayudantes Extras:</span>
+                    <span id="summaryHelpersPrice" class="font-bold text-uingo-black">$0.00 MXN</span>
                 </div>
-                <div class="flex justify-between pb-2 border-b border-slate-800">
-                    <span class="text-slate-400">Tiempo Solicitado:</span>
-                    <span class="font-bold text-white" id="summaryContractedTime">-</span>
+                <div class="flex justify-between pb-2.5 border-b border-slate-200">
+                    <span class="text-slate-500">Recargo por Tiempo Extra:</span>
+                    <span id="summaryExtraCost" class="font-extrabold text-rose-600">$0.00 MXN</span>
                 </div>
-                <div class="flex justify-between pb-2 border-b border-slate-800">
-                    <span class="text-slate-400">Tiempo Extra Cobrado (Max 30m):</span>
-                    <span class="font-bold text-rose-400" id="summaryExtraMinutes">0 min</span>
-                </div>
-                <div class="flex justify-between pb-2 border-b border-slate-800">
-                    <span class="text-slate-400">Cobro Base Inicial:</span>
-                    <span class="font-bold text-white" id="summaryBasePrice">$0.00 MXN</span>
-                </div>
-                <div class="flex justify-between pb-2 border-b border-slate-800">
-                    <span class="text-slate-400">Cargadores Extras:</span>
-                    <span class="font-bold text-white" id="summaryHelpersPrice">$0.00 MXN</span>
-                </div>
-                <div class="flex justify-between pb-2 border-b border-slate-800">
-                    <span class="text-slate-400">Recargo por Tiempo Extra:</span>
-                    <span class="font-bold text-rose-400" id="summaryExtraCost">$0.00 MXN</span>
-                </div>
-                <div class="flex justify-between text-sm pt-1">
-                    <span class="font-extrabold text-white">TOTAL A COBRAR:</span>
-                    <span class="font-black text-emerald-400 text-lg" id="summaryGrandTotal">$0.00 MXN</span>
+                <div class="flex justify-between items-center text-sm pt-2">
+                    <span class="font-black text-uingo-black text-base">TOTAL A COBRAR:</span>
+                    <span id="summaryGrandTotal" class="font-black text-uingo-blue text-2xl font-mono">$0.00 MXN</span>
                 </div>
             </div>
-
             <!-- Botones de Acción -->
-            <button onclick="sendWhatsAppReport()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-3.5 rounded-2xl shadow-lg transition flex items-center justify-center space-x-2 text-sm">
-                <i class="fa-brands fa-whatsapp text-lg"></i>
-                <span>ENVIAR REPORTE A UINGO WHATSAPP</span>
-            </button>
-
-            <button onclick="resetApp()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 rounded-2xl transition text-xs">
-                Registrar Nuevo Servicio
-            </button>
-        </div>
-
+            <div class="space-y-3">
+                <button onclick="sendWhatsAppReport()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-4 px-6 rounded-2xl shadow-xl transition flex items-center justify-center space-x-2 text-sm glow-blue">
+                    <i class="fa-brands fa-whatsapp text-xl"></i>
+                    <span>ENVIAR REPORTE OFICIAL A WHATSAPP UINGO</span>
+                </button>
+                <button onclick="resetApp()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3.5 px-6 rounded-2xl transition text-xs flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-rotate-left"></i>
+                    <span>Registrar Nuevo Servicio</span>
+                </button>
+            </div>
+        </section>
     </main>
 
-    <footer class="max-w-md mx-auto w-full text-center text-[10px] text-slate-500">
-        UINGO Logística & Fletes © 2026 — Colima / Jalisco, México
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-4 text-center text-[11px] text-slate-500">
+        <div class="max-w-2xl mx-auto px-4">
+            <p>UINGO Logística & Fletes © 2026. Plataforma Operativa de Socios. Colima & Jalisco, México.</p>
+        </div>
     </footer>
 
-    <!-- Lógica JavaScript -->
+    <!-- LÓGICA DE JAVASCRIPT UNIFICADA Y COMPLETA -->
     <script>
         let startTime = null;
         let endTime = null;
         let timerInterval = null;
         let serviceData = {};
 
-        window.onload = function() {
-            const today = new Date();
-            document.getElementById('serviceDate').value = today.toISOString().split('T')[0];
+        const ratesConfig = {
+            camioneta: {
+                name: 'Camioneta (1.2 Toneladas)',
+                rate30Min: 312,
+                perMin: 312 / 30 // $10.40 / min
+            },
+            camion: {
+                name: 'Camión (3 Toneladas)',
+                rate30Min: 936,
+                perMin: 936 / 30 // $31.20 / min
+            }
         };
+
+        window.onload = function() {
+            const dateInput = document.getElementById('serviceDate');
+            if (dateInput) {
+                const today = new Date();
+                const yyyy = today.getFullYear();
+                const mm = String(today.getMonth() + 1).padStart(2, '0');
+                const dd = String(today.getDate()).padStart(2, '0');
+                dateInput.value = `${yyyy}-${mm}-${dd}`;
+            }
+            updateVehicleRatesNotice();
+        };
+
+        function updateVehicleRatesNotice() {
+            const vehicle = document.getElementById('vehicleType').value;
+            const noticeEl = document.getElementById('rateNoticeText');
+            if (vehicle === 'camioneta') {
+                noticeEl.innerText = '$10.40/min ($312 cada 30 min)';
+            } else {
+                noticeEl.innerText = '$31.20/min ($936 cada 30 min)';
+            }
+        }
 
         function startService() {
             const driver = document.getElementById('driverName').value.trim();
@@ -262,37 +371,42 @@
             const blocks = parseInt(document.getElementById('contractedBlocks').value);
             const helpers = parseInt(document.getElementById('extraHelpers').value);
 
-            if (!driver || !client) {
-                alert("Por favor completa el nombre del chofer y del cliente.");
+            if (!driver || !client || !date) {
+                alert("Por favor completa todos los campos requeridos.");
                 return;
             }
 
             startTime = new Date();
-
-            const vehicleName = vehicle === 'camioneta' ? 'Camioneta (1.2 Toneladas)' : 'Camión (3 Toneladas)';
+            const config = ratesConfig[vehicle];
+            const contractedMins = blocks * 30;
 
             serviceData = {
                 driver,
                 client,
                 date,
                 vehicle,
-                vehicleName,
+                vehicleName: config.name,
                 blocks,
                 helpers,
-                contractedMinutes: blocks * 30,
+                contractedMinutes: contractedMins,
+                allowedMinutes: contractedMins + 5,
+                rate30Min: config.rate30Min,
+                perMinRate: config.perMin,
                 startTimeFormatted: startTime.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
             };
 
             document.getElementById('displayClientName').innerText = client;
             document.getElementById('displayDriverName').innerText = driver;
-            document.getElementById('displayVehicleName').innerText = vehicleName;
+            document.getElementById('displayVehicleName').innerText = config.name;
             document.getElementById('displayStartTime').innerText = serviceData.startTimeFormatted;
-            document.getElementById('displayContractedTime').innerText = `${serviceData.contractedMinutes} Minutos`;
+            document.getElementById('displayContractedTime').innerText = `${contractedMins} min`;
+            document.getElementById('displayAllowedTime').innerText = `${serviceData.allowedMinutes} min`;
 
-            document.getElementById('setupForm').classList.add('hidden');
+            document.getElementById('setupSection').classList.add('hidden');
             document.getElementById('activeTimerSection').classList.remove('hidden');
 
             timerInterval = setInterval(updateTimerDisplay, 1000);
+            updateTimerDisplay();
         }
 
         function updateTimerDisplay() {
@@ -307,64 +421,53 @@
             document.getElementById('timerDisplay').innerText = `${hrs}:${mins}:${secs}`;
 
             const elapsedMins = Math.floor(totalSecs / 60);
-            const allowedMins = serviceData.contractedMinutes + 5; // 5 min cortesía
-            
-            const rate30 = serviceData.vehicle === 'camioneta' ? 312 : 936;
-            const costPerMin = rate30 / 30;
+            const clockContainer = document.getElementById('clockContainer');
+            const cortesiaBadge = document.getElementById('cortesiaBadge');
+            const extraMinutesText = document.getElementById('extraMinutesText');
+            const extraCostText = document.getElementById('extraCostText');
 
-            if (elapsedMins > allowedMins) {
-                let rawExtraMins = elapsedMins - allowedMins;
-                // TOPE ESTRICTO DE 30 MINUTOS EXTRAS
-                let extraMins = rawExtraMins > 30 ? 30 : rawExtraMins;
-                const extraCost = extraMins * costPerMin;
+            if (elapsedMins > serviceData.allowedMinutes) {
+                const extraMins = elapsedMins - serviceData.allowedMinutes;
+                const extraCost = extraMins * serviceData.perMinRate;
 
-                document.getElementById('extraMinutesText').innerText = `${extraMins} / 30 min (Tope)`;
-                document.getElementById('extraCostText').innerText = `$${extraCost.toFixed(2)} MXN`;
+                extraMinutesText.innerText = `${extraMins} min`;
+                extraMinutesText.className = "font-black text-rose-600 text-sm";
                 
-                // Alerta visual de presión
-                const clockBox = document.getElementById('clockContainer');
-                clockBox.className = "bg-black border-2 border-rose-600 rounded-3xl p-6 shadow-inner alert-pulse";
-                
-                document.getElementById('cortesiaBadge').className = "inline-block mt-3 bg-rose-500/20 text-rose-400 border border-rose-500/40 text-[11px] font-bold px-3 py-1 rounded-full";
-                document.getElementById('cortesiaBadge').innerText = rawExtraMins > 30 ? "🛑 TOPE MÁXIMO DE TIEMPO EXTRA ALCANZADO" : "⚠️ TIEMPO EXCEDIDO EN CURSO";
+                extraCostText.innerText = `$${extraCost.toFixed(2)} MXN`;
+                extraCostText.className = "font-black text-lg text-rose-600";
+
+                clockContainer.className = "bg-slate-950 border-2 border-rose-500/80 rounded-3xl p-6 sm:p-8 shadow-inner glow-rose transition-colors duration-300";
+                cortesiaBadge.className = "inline-flex items-center space-x-1.5 mt-3 bg-rose-500/20 text-rose-400 border border-rose-500/40 text-xs font-bold px-3.5 py-1.5 rounded-full animate-pulse-slow";
+                cortesiaBadge.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i><span>¡TIEMPO EXCEDIDO COMPUTANDO RECARGO!</span>`;
             } else {
-                document.getElementById('extraMinutesText').innerText = `0 / 30 min`;
-                document.getElementById('extraCostText').innerText = `$0.00 MXN`;
+                extraMinutesText.innerText = `0 min`;
+                extraMinutesText.className = "font-bold text-slate-800 text-sm";
+                
+                extraCostText.innerText = `$0.00 MXN`;
+                extraCostText.className = "font-bold text-base text-slate-800";
+
+                clockContainer.className = "bg-slate-950 border-2 border-slate-900 rounded-3xl p-6 sm:p-8 shadow-inner transition-colors duration-300";
+                cortesiaBadge.className = "inline-flex items-center space-x-1.5 mt-3 bg-sky-500/20 text-uingo-light border border-sky-400/30 text-xs font-bold px-3.5 py-1.5 rounded-full";
+                cortesiaBadge.innerHTML = `<i class="fa-solid fa-shield-halved text-xs"></i><span>Tolerancia Activa (5 min cortesía)</span>`;
             }
         }
 
-        function showFinalStep() {
+        async function finishService() {
             clearInterval(timerInterval);
             endTime = new Date();
-            document.getElementById('activeTimerSection').classList.add('hidden');
-            document.getElementById('auditStepSection').classList.remove('hidden');
-        }
-
-        async function processAndFinishService() {
-            const photoInput = document.getElementById('evidencePhoto');
-            if (!photoInput.files || photoInput.files.length === 0) {
-                alert("Candado de Seguridad: Es obligatorio adjuntar o tomar la foto de evidencia de la entrega para poder finalizar el reporte.");
-                return;
-            }
 
             const diffMs = endTime - startTime;
             const totalMinutesReal = Math.floor(diffMs / (1000 * 60));
-            const allowedMinutes = serviceData.contractedMinutes + 5;
-
-            const rate30 = serviceData.vehicle === 'camioneta' ? 312 : 936;
-            const costPerMin = rate30 / 30;
 
             let extraMinutes = 0;
             let extraCost = 0;
 
-            if (totalMinutesReal > allowedMinutes) {
-                let rawExtra = totalMinutesReal - allowedMinutes;
-                // APLICAR EL TOPE MÁXIMO DE 30 MINUTOS EXTRAS
-                extraMinutes = rawExtra > 30 ? 30 : rawExtra;
-                extraCost = extraMinutes * costPerMin;
+            if (totalMinutesReal > serviceData.allowedMinutes) {
+                extraMinutes = totalMinutesReal - serviceData.allowedMinutes;
+                extraCost = extraMinutes * serviceData.perMinRate;
             }
 
-            const baseCost = serviceData.blocks * rate30;
+            const baseCost = serviceData.blocks * serviceData.rate30Min;
             const hoursCount = serviceData.blocks / 2;
             const helpersCost = serviceData.helpers * (hoursCount * 200);
             const grandTotal = baseCost + helpersCost + extraCost;
@@ -376,26 +479,23 @@
             serviceData.helpersCost = helpersCost;
             serviceData.extraCost = extraCost;
             serviceData.grandTotal = grandTotal;
-            serviceData.hasEvidence = true;
 
-            // Rellenar resumen visual
             document.getElementById('summaryVehicle').innerText = serviceData.vehicleName;
             document.getElementById('summaryStartTime').innerText = serviceData.startTimeFormatted;
             document.getElementById('summaryEndTime').innerText = serviceData.endTimeFormatted;
             document.getElementById('summaryTotalDuration').innerText = `${totalMinutesReal} Minutos`;
-            document.getElementById('summaryContractedTime').innerText = `${serviceData.contractedMinutes} Minutos (+5m cortesía)`;
-            document.getElementById('summaryExtraMinutes').innerText = `${extraMinutes} min ${extraMinutes === 30 ? '(Alcanzó tope máx)' : ''}`;
+            document.getElementById('summaryContractedTime').innerText = `${serviceData.contractedMinutes} Minutos`;
+            document.getElementById('summaryExtraMinutes').innerText = `${extraMinutes} min`;
             document.getElementById('summaryBasePrice').innerText = `$${baseCost.toLocaleString('es-MX')} MXN`;
             document.getElementById('summaryHelpersPrice').innerText = `$${helpersCost.toLocaleString('es-MX')} MXN`;
             document.getElementById('summaryExtraCost').innerText = `$${extraCost.toFixed(2)} MXN`;
             document.getElementById('summaryGrandTotal').innerText = `$${grandTotal.toFixed(2)} MXN`;
 
-            document.getElementById('auditStepSection').classList.add('hidden');
+            document.getElementById('activeTimerSection').classList.add('hidden');
             document.getElementById('finalSummarySection').classList.remove('hidden');
 
-            // Guardar en Supabase
             try {
-                await _supabase.from('servicios_tiempo').insert([{
+                const { error } = await _supabase.from('servicios_tiempo').insert([{
                     fecha: serviceData.date,
                     socio: serviceData.driver,
                     cliente: serviceData.client,
@@ -408,36 +508,35 @@
                     costo_extra: extraCost,
                     total_pagado: grandTotal
                 }]);
+                if (error) console.error('Error al registrar en Supabase:', error.message);
             } catch (e) {
-                console.warn('Supabase error:', e);
+                console.warn('Excepción de Supabase:', e);
             }
         }
 
         function sendWhatsAppReport() {
-            const msg = `🛡️ *REPORTE AUDITADO UINGO*%0A%0A` +
+            const msg = `📋 *REPORTE DE SERVICIO LOCAL UINGO*%0A%0A` +
                 `👤 *Socio / Chofer:* ${serviceData.driver}%0A` +
                 `🏢 *Cliente:* ${serviceData.client}%0A` +
                 `📅 *Fecha:* ${serviceData.date}%0A` +
                 `🚗 *Vehículo:* ${serviceData.vehicleName}%0A` +
-                `⏱️ *Contratado:* ${serviceData.contractedMinutes} min%0A` +
+                `⏱️ *Contratado:* ${serviceData.contractedMinutes} min (+5m cortesía)%0A` +
                 `🕐 *Llegada:* ${serviceData.startTimeFormatted} | *Cierre:* ${serviceData.endTimeFormatted}%0A` +
-                `⏳ *Tiempo Real:* ${serviceData.totalMinutesReal} min (Extra cobrado: ${serviceData.extraMinutes} min max)%0A` +
-                `📸 *Evidencia:* Registrada con éxito%0A` +
-                `💰 *Base:* $${serviceData.baseCost.toLocaleString('es-MX')} MXN%0A` +
-                (serviceData.helpers > 0 ? `👥 *Ayudantes:* $${serviceData.helpersCost.toLocaleString('es-MX')} MXN%0A` : '') +
-                (serviceData.extraCost > 0 ? `⚠️ *Recargo Extra:* $${serviceData.extraCost.toFixed(2)} MXN%0A` : '') +
-                `💎 *TOTAL FINAL:* *$${serviceData.grandTotal.toFixed(2)} MXN*%0A%0A` +
-                `_Sistema antifraude de tiempos UINGO._`;
-
+                `⏳ *Tiempo Real:* ${serviceData.totalMinutesReal} min (Excedido: ${serviceData.extraMinutes} min)%0A` +
+                `💰 *Base Renta:* $${serviceData.baseCost.toLocaleString('es-MX')} MXN%0A` +
+                (serviceData.helpers > 0 ? `👥 *Ayudantes Extras:* $${serviceData.helpersCost.toLocaleString('es-MX')} MXN%0A` : '') +
+                (serviceData.extraCost > 0 ? `⚠️ *Recargo Tiempo Extra:* $${serviceData.extraCost.toFixed(2)} MXN%0A` : '') +
+                `💎 *TOTAL A COBRAR:* *$${serviceData.grandTotal.toFixed(2)} MXN*%0A%0A` +
+                `_Reporte oficial verificado mediante Panel de Socios UINGO._`;
             window.open(`https://wa.me/523122416157?text=${msg}`, '_blank');
         }
 
         function resetApp() {
             document.getElementById('driverName').value = '';
             document.getElementById('clientName').value = '';
-            document.getElementById('evidencePhoto').value = '';
             document.getElementById('finalSummarySection').classList.add('hidden');
-            document.getElementById('setupForm').classList.remove('hidden');
+            document.getElementById('setupSection').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     </script>
 </body>
