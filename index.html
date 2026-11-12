@@ -97,14 +97,14 @@
     <!-- Main Container -->
     <main class="max-w-2xl mx-auto px-4 py-6 w-full flex-grow flex flex-col justify-center">
         
-        <!-- VISTA DE CLIENTE (MODO SEGUIMIENTO EN VIVO SINCRONIZADO) -->
+        <!-- VISTA DE CLIENTE (MODO SEGUIMIENTO EN VIVO POR LINK) -->
         <section id="clientTrackView" class="hidden bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 text-center">
             <div class="pb-2 border-b border-slate-100">
                 <div class="inline-flex items-center justify-center w-12 h-12 bg-blue-50 text-uingo-blue rounded-2xl mb-2 border border-blue-100">
                     <i class="fa-solid fa-eye text-xl"></i>
                 </div>
                 <h2 class="text-xl font-extrabold text-uingo-black">Seguimiento en Vivo del Servicio</h2>
-                <p class="text-slate-500 text-xs mt-1">UINGO Transparencia — Tiempo y estatus sincronizado</p>
+                <p class="text-slate-500 text-xs mt-1">UINGO Transparencia — Tiempo y estatus en tiempo real</p>
             </div>
             
             <!-- Aviso de Servicio Finalizado para el Cliente -->
@@ -139,7 +139,7 @@
                 </div>
                 <div class="inline-flex items-center space-x-1.5 mt-3 bg-sky-500/20 text-uingo-light border border-sky-400/30 text-xs font-bold px-3.5 py-1.5 rounded-full">
                     <i class="fa-solid fa-clock text-xs"></i>
-                    <span>Medición Oficial Sincronizada UINGO</span>
+                    <span>Medición Oficial UINGO</span>
                 </div>
             </div>
 
@@ -175,20 +175,15 @@
                         <input type="text" id="driverName" required placeholder="Ej. Carlos Mendoza" class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-10 pr-4 py-3 text-sm text-uingo-black focus:outline-none focus:border-uingo-blue focus:ring-1 focus:ring-uingo-blue transition">
                     </div>
                 </div>
-
-                <!-- BÚSQUEDA Y AUTOCOMPLETADO DE CLIENTES DESDE SUPABASE -->
-                <div class="relative">
+                <div>
                     <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Nombre del Cliente *</label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
                             <i class="fa-solid fa-user text-sm"></i>
                         </span>
-                        <input type="text" id="clientName" autocomplete="off" required placeholder="Escribe para buscar cliente registrado..." oninput="searchClientInSupabase(this.value)" class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-10 pr-4 py-3 text-sm text-uingo-black focus:outline-none focus:border-uingo-blue focus:ring-1 focus:ring-uingo-blue transition">
+                        <input type="text" id="clientName" required placeholder="Ej. Roberto Gómez" class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-10 pr-4 py-3 text-sm text-uingo-black focus:outline-none focus:border-uingo-blue focus:ring-1 focus:ring-uingo-blue transition">
                     </div>
-                    <!-- Contenedor desplegable de sugerencias de Supabase -->
-                    <div id="clientSuggestions" class="absolute left-0 right-0 z-50 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl max-h-48 overflow-y-auto hidden"></div>
                 </div>
-
                 <div>
                     <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Fecha del Servicio *</label>
                     <div class="relative w-full">
@@ -229,7 +224,7 @@
                         Política Antifraude UINGO:
                     </p>
                     <p class="leading-relaxed">
-                        • Al iniciar, se abrirá obligatoriamente WhatsApp para compartir el seguimiento en vivo sincronizado al cliente.
+                        • Al iniciar, se abrirá obligatoriamente WhatsApp para compartir el seguimiento en vivo al cliente.
                     </p>
                     <p class="leading-relaxed">
                         • El tiempo extra cuenta con un <strong class="text-rose-600">tope estricto máximo de 30 minutos extras</strong>.
@@ -260,7 +255,7 @@
             <!-- BOTÓN DESTACADO OBLIGATORIO DE COMPARTIR A CLIENTE -->
             <button onclick="shareTrackingToClient()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-3.5 px-4 rounded-2xl shadow-lg transition flex items-center justify-center space-x-2 text-xs uppercase tracking-wider">
                 <i class="fa-brands fa-whatsapp text-lg"></i>
-                <span>📲 Compartir Enlace Sincronizado al Cliente</span>
+                <span>📲 Compartir Enlace en Vivo al Cliente</span>
             </button>
             <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-left text-xs grid grid-cols-2 gap-3">
                 <div>
@@ -401,7 +396,7 @@
         </div>
     </footer>
 
-    <!-- LÓGICA JAVASCRIPT CONECTADA CORRECTAMENTE -->
+    <!-- LÓGICA JAVASCRIPT PERFECTAMENTE SINCRONIZADA -->
     <script>
         let startTime = null;
         let endTime = null;
@@ -409,7 +404,6 @@
         let serviceData = {};
         let photoBase64 = "";
         let currentFolio = "";
-        let searchTimeout = null;
         
         const ratesConfig = {
             camioneta: {
@@ -429,14 +423,41 @@
             const folioParam = urlParams.get('folio');
             
             if (folioParam) {
-                // MODO CLIENTE: Consultar el inicio real del servicio en Supabase
+                // MODO CLIENTE: Leer los datos que vienen directo en el link
                 document.getElementById('setupSection').classList.add('hidden');
                 document.getElementById('clientTrackView').classList.remove('hidden');
                 document.getElementById('headerTitle').innerText = "Seguimiento Cliente";
-                document.getElementById('headerSub').innerText = "Monitoreo Sincronizado";
+                document.getElementById('headerSub').innerText = "Monitoreo en Vivo";
                 document.getElementById('clientTrackFolio').innerText = folioParam;
 
-                await loadClientLiveService(folioParam);
+                const clientName = urlParams.get('cliente') || 'Cliente UINGO';
+                const driverName = urlParams.get('socio') || 'Socio Asignado';
+                const vehicleName = urlParams.get('vehiculo') || 'Unidad Activa';
+                const startIso = urlParams.get('start');
+
+                document.getElementById('clientTrackName').innerText = clientName;
+                document.getElementById('clientTrackDriver').innerText = driverName;
+                document.getElementById('clientTrackVehicle').innerText = vehicleName;
+
+                if (startIso) {
+                    startTime = new Date(startIso);
+                } else {
+                    startTime = new Date();
+                }
+
+                // Iniciar cronómetro idéntico al del chofer
+                setInterval(() => {
+                    const now = new Date();
+                    const diffMs = now - startTime;
+                    const totalSecs = Math.max(0, Math.floor(diffMs / 1000));
+                    const hrs = String(Math.floor(totalSecs / 3600)).padStart(2, '0');
+                    const mins = String(Math.floor((totalSecs % 3600) / 60)).padStart(2, '0');
+                    const secs = String(totalSecs % 60).padStart(2, '0');
+                    document.getElementById('clientTimerDisplay').innerText = `${hrs}:${mins}:${secs}`;
+                }, 1000);
+
+                // Monitorear en Supabase en tiempo real si el chofer ya finalizó el servicio
+                checkClientRealtimeStatus(folioParam);
                 return;
             }
 
@@ -451,132 +472,53 @@
             }
         };
 
-        // BÚSQUEDA DE CLIENTES DESDE SUPABASE
-        function searchClientInSupabase(query) {
-            clearTimeout(searchTimeout);
-            const container = document.getElementById('clientSuggestions');
-            
-            if (!query || query.trim().length < 2) {
-                container.classList.add('hidden');
-                return;
-            }
-
-            searchTimeout = setTimeout(async () => {
-                try {
-                    const { data, error } = await _supabase
-                        .from('clientes')
-                        .select('nombre, telefono, tipo')
-                        .ilike('nombre', `%${query}%`)
-                        .limit(5);
-
-                    container.innerHTML = '';
-
-                    if (data && data.length > 0) {
-                        data.forEach(item => {
-                            const div = document.createElement('div');
-                            div.className = 'p-3 text-xs text-slate-700 hover:bg-blue-50 cursor-pointer border-b border-slate-100 flex justify-between items-center';
-                            div.innerHTML = `
-                                <div>
-                                    <strong class="text-uingo-black block font-bold">${item.nombre}</strong>
-                                    <span class="text-[10px] text-slate-400">${item.tipo || 'Particular'} • Tel: ${item.telefono || 'Sin tel'}</span>
-                                </div>
-                                <span class="text-uingo-blue text-[10px] font-bold"><i class="fa-solid fa-check"></i> Seleccionar</span>
-                            `;
-                            div.onclick = () => {
-                                document.getElementById('clientName').value = item.nombre;
-                                container.classList.add('hidden');
-                            };
-                            container.appendChild(div);
-                        });
-                        container.classList.remove('hidden');
-                    } else {
-                        const div = document.createElement('div');
-                        div.className = 'p-3 text-xs text-slate-500 italic';
-                        div.innerText = 'Usar nombre escrito (Nuevo cliente)';
-                        div.onclick = () => { container.classList.add('hidden'); };
-                        container.appendChild(div);
-                        container.classList.remove('hidden');
-                    }
-                } catch (e) {
-                    console.error('Error buscando cliente:', e);
-                }
-            }, 300);
-        }
-
-        async function loadClientLiveService(folio) {
+        // Monitorear cambios del servicio en Supabase para el cliente
+        async function checkClientRealtimeStatus(folio) {
             try {
-                // Buscamos el servicio en Supabase usando el folio exacto
-                const { data, error } = await _supabase
+                // Verificar estado inicial
+                const { data } = await _supabase
                     .from('servicios_tiempo')
                     .select('*')
                     .eq('folio', folio)
                     .single();
 
-                if (error || !data) {
-                    document.getElementById('clientTrackName').innerText = "Cliente UINGO";
-                    document.getElementById('clientTrackDriver').innerText = "Socio Asignado";
-                    document.getElementById('clientTrackVehicle').innerText = "Unidad Activa";
-                    startTime = new Date();
-                    startClientSyncTimer(null);
-                    return;
+                if (data && data.estado === 'FINALIZADO') {
+                    showClientFinishedView(data);
                 }
 
-                // Pintamos los datos reales del cliente guardados por el chofer
-                document.getElementById('clientTrackName').innerText = data.cliente;
-                document.getElementById('clientTrackDriver').innerText = data.socio;
-                document.getElementById('clientTrackVehicle').innerText = data.vehiculo;
-
-                // Tomamos la fecha guardada en la columna 'fecha' (o start_time si existe) como base de inicio
-                startTime = new Date(data.created_at || data.fecha);
-
-                if (data.estado === 'FINALIZADO') {
-                    document.getElementById('clientFinishedAlert').classList.remove('hidden');
-                    document.getElementById('clientSummaryCard').classList.remove('hidden');
-                    document.getElementById('clientClockLabel').innerText = "Duración Total del Servicio";
-                    document.getElementById('clientSummaryDuration').innerText = `${data.minutos_reales} Minutos`;
-                    document.getElementById('clientSummaryTotal').innerText = `$${Number(data.total_pagado).toFixed(2)} MXN`;
-                    
-                    const diffMs = new Date(data.end_time || Date.now()) - startTime;
-                    displayFormattedTime(diffMs, 'clientTimerDisplay');
-                } else {
-                    startClientSyncTimer(startTime);
-                    
-                    // Escuchar cambios en tiempo real si el chofer finaliza
-                    _supabase
-                        .channel('public:servicios_tiempo:folio=' + folio)
-                        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'servicios_tiempo', filter: `folio=eq.${folio}` }, payload => {
-                            if (payload.new.estado === 'FINALIZADO') {
-                                location.reload();
-                            }
-                        })
-                        .subscribe();
-                }
+                // Escuchar en tiempo real si el chofer presiona finalizar
+                _supabase
+                    .channel('public:servicios_tiempo:folio=' + folio)
+                    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'servicios_tiempo', filter: `folio=eq.${folio}` }, payload => {
+                        if (payload.new.estado === 'FINALIZADO') {
+                            showClientFinishedView(payload.new);
+                        }
+                    })
+                    .subscribe();
             } catch (e) {
-                console.warn('Error sincronizando con Supabase:', e);
-                startTime = new Date();
-                startClientSyncTimer(null);
+                console.warn('Modo directo activo sin conexión estricta realtime');
             }
         }
 
-        function startClientSyncTimer(serverStartTime) {
-            const startTimestamp = serverStartTime ? new Date(serverStartTime).getTime() : startTime.getTime();
+        function showClientFinishedView(data) {
+            document.getElementById('clientFinishedAlert').classList.remove('hidden');
+            document.getElementById('clientSummaryCard').classList.remove('hidden');
+            document.getElementById('clientClockLabel').innerText = "Duración Total del Servicio";
+            document.getElementById('clientSummaryDuration').innerText = `${data.minutos_reales} Minutos`;
+            document.getElementById('clientSummaryTotal').innerText = `$${Number(data.total_pagado).toFixed(2)} MXN`;
             
-            setInterval(() => {
-                const now = Date.now();
-                const diffMs = now - startTimestamp;
-                displayFormattedTime(diffMs, 'clientTimerDisplay');
-            }, 1000);
+            // Congelar reloj en el tiempo final real
+            if(data.start_time && data.end_time) {
+                const diffMs = new Date(data.end_time) - new Date(data.start_time);
+                const totalSecs = Math.max(0, Math.floor(diffMs / 1000));
+                const hrs = String(Math.floor(totalSecs / 3600)).padStart(2, '0');
+                const mins = String(Math.floor((totalSecs % 3600) / 60)).padStart(2, '0');
+                const secs = String(totalSecs % 60).padStart(2, '0');
+                document.getElementById('clientTimerDisplay').innerText = `${hrs}:${mins}:${secs}`;
+            }
         }
 
-        function displayFormattedTime(ms, elementId) {
-            const totalSecs = Math.max(0, Math.floor(ms / 1000));
-            const hrs = String(Math.floor(totalSecs / 3600)).padStart(2, '0');
-            const mins = String(Math.floor((totalSecs % 3600) / 60)).padStart(2, '0');
-            const secs = String(totalSecs % 60).padStart(2, '0');
-            document.getElementById(elementId).innerText = `${hrs}:${mins}:${secs}`;
-        }
-
-        async function startService() {
+        function startService() {
             const driver = document.getElementById('driverName').value.trim();
             const client = document.getElementById('clientName').value.trim();
             const date = document.getElementById('serviceDate').value;
@@ -607,22 +549,24 @@
                 allowedMinutes: contractedMins + 5,
                 rate30Min: config.rate30Min,
                 perMinRate: config.perMin,
-                startTimeFormatted: startTime.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+                startTimeFormatted: startTime.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+                startIsoString: startTime.toISOString()
             };
 
-            // Guardamos usando las columnas estándar existentes de tu tabla
+            // Guardar registro en Supabase para auditoría y estatus final
             try {
-                await _supabase.from('servicios_tiempo').insert([{
+                _supabase.from('servicios_tiempo').insert([{
                     folio: currentFolio,
-                    fecha: new Date().toISOString(),
+                    fecha: date,
                     socio: driver,
                     cliente: client,
                     vehiculo: config.name,
                     minutos_contratados: contractedMins,
+                    start_time: serviceData.startIsoString,
                     estado: 'ACTIVO'
-                }]);
+                }]).then();
             } catch (e) {
-                console.error("Error al registrar inicio en Supabase:", e);
+                console.error("Error al registrar inicio:", e);
             }
 
             document.getElementById('displayClientName').innerText = client;
@@ -642,10 +586,12 @@
 
         function shareTrackingToClient() {
             const currentUrl = window.location.origin + window.location.pathname;
-            const trackingLink = `${currentUrl}?folio=${serviceData.folio}`;
+            // Pasamos todos los datos necesarios directamente en la URL para que el cliente los vea sin BD
+            const trackingLink = `${currentUrl}?folio=${serviceData.folio}&cliente=${encodeURIComponent(serviceData.client)}&socio=${encodeURIComponent(serviceData.driver)}&vehiculo=${encodeURIComponent(serviceData.vehicleName)}&start=${encodeURIComponent(serviceData.startIsoString)}`;
+            
             const msg = `👋 *Hola ${serviceData.client}*%0A%0A` +
                 `Soy tu chofer/socio de *UINGO* (${serviceData.driver}). Te confirmo que *la unidad ya se encuentra en la ubicación* de inicio.%0A%0A` +
-                `⏱️ *Puedes monitorear el tiempo exacto sincronizado y costo de tu servicio en tiempo real aquí:*%0A` +
+                `⏱️ *Puedes monitorear el tiempo exacto en tiempo real y ver tu resumen al finalizar aquí:*%0A` +
                 `${trackingLink}%0A%0A` +
                 `_Gracias por tu confianza en UINGO Logística._`;
             window.open(`https://wa.me/?text=${msg}`, '_blank');
@@ -654,9 +600,12 @@
         function updateTimerDisplay() {
             const now = new Date();
             const diffMs = now - startTime;
-            displayFormattedTime(diffMs, 'timerDisplay');
-
             const totalSecs = Math.floor(diffMs / 1000);
+            const hrs = String(Math.floor(totalSecs / 3600)).padStart(2, '0');
+            const mins = String(Math.floor((totalSecs % 3600) / 60)).padStart(2, '0');
+            const secs = String(totalSecs % 60).padStart(2, '0');
+            document.getElementById('timerDisplay').innerText = `${hrs}:${mins}:${secs}`;
+
             const elapsedMins = Math.floor(totalSecs / 60);
             const clockContainer = document.getElementById('clockContainer');
             const cortesiaBadge = document.getElementById('cortesiaBadge');
@@ -670,7 +619,6 @@
 
                 extraMinutesText.innerText = `${extraMins} / 30 min (Tope)`;
                 extraMinutesText.className = "font-black text-rose-600 text-sm";
-                
                 extraCostText.innerText = `$${extraCost.toFixed(2)} MXN`;
                 extraCostText.className = "font-black text-lg text-rose-600";
                 
@@ -680,7 +628,6 @@
             } else {
                 extraMinutesText.innerText = `0 / 30 min`;
                 extraMinutesText.className = "font-bold text-slate-800 text-sm";
-                
                 extraCostText.innerText = `$0.00 MXN`;
                 extraCostText.className = "font-bold text-base text-slate-800";
                 
@@ -748,8 +695,10 @@
                 document.getElementById('auditSection').classList.add('hidden');
                 document.getElementById('finalSummarySection').classList.remove('hidden');
 
+                // Actualizar en Supabase para que el link del cliente detecte el cierre y muestre el resumen
                 try {
                     await _supabase.from('servicios_tiempo').update({
+                        end_time: endTime.toISOString(),
                         minutos_reales: totalMinutesReal,
                         minutos_extras: extraMinutes,
                         costo_base: baseCost,
@@ -760,7 +709,7 @@
                         estado: 'FINALIZADO'
                     }).eq('folio', serviceData.folio);
                 } catch (e) {
-                    console.error('Error al actualizar cierre en Supabase:', e);
+                    console.error('Error al actualizar cierre:', e);
                 }
             };
             reader.readAsDataURL(file);
