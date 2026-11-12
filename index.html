@@ -200,7 +200,7 @@
                 <div>
                     <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Tipo de Vehículo *</label>
                     <select id="vehicleType" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm text-uingo-blue font-bold focus:outline-none focus:border-uingo-blue transition">
-                        <option value="camioneta">Camioneta 1.2T — $213 / 30 min</option>
+                        <option value="camioneta">Camioneta 1.2T — $312 / 30 min</option>
                         <option value="camion">Camión 3T — $936 / 30 min</option>
                     </select>
                 </div>
@@ -403,7 +403,7 @@
         </div>
     </footer>
 
-    <!-- LÓGICA JAVASCRIPT DIRECTA POR URL Y TIEMPO REAL -->
+    <!-- LÓGICA JAVASCRIPT AUTÓNOMA POR PARÁMETROS URL -->
     <script>
         let startTime = null;
         let endTime = null;
@@ -415,8 +415,8 @@
         const ratesConfig = {
             camioneta: {
                 name: 'Camioneta (1.2 Toneladas)',
-                rate30Min: 213,
-                perMin: 213 / 30
+                rate30Min: 312,
+                perMin: 312 / 30
             },
             camion: {
                 name: 'Camión (3 Toneladas)',
@@ -425,12 +425,12 @@
             }
         };
 
-        window.onload = async function() {
+        window.onload = function() {
             const urlParams = new URLSearchParams(window.location.search);
             const folioParam = urlParams.get('folio');
             
             if (folioParam) {
-                // MODO CLIENTE: Leer los datos que vienen directamente en el enlace
+                // MODO CLIENTE: Lee todo directo de la URL sin requerir bases de datos
                 document.getElementById('setupSection').classList.add('hidden');
                 document.getElementById('clientTrackView').classList.remove('hidden');
                 document.getElementById('headerTitle').innerText = "Seguimiento Cliente";
@@ -441,6 +441,15 @@
                 const driverName = urlParams.get('socio') || 'Socio Asignado';
                 const vehicleName = urlParams.get('vehiculo') || 'Unidad Activa';
                 const startIso = urlParams.get('start');
+                
+                // Nuevos parámetros de cierre si el servicio ya terminó
+                const statusParam = urlParams.get('status');
+                const durationParam = urlParams.get('dur') || '0';
+                const contractedParam = urlParams.get('contratado') || '30';
+                const extraMinParam = urlParams.get('extramin') || '0';
+                const baseCostParam = urlParams.get('base') || '0';
+                const extraCostParam = urlParams.get('extracost') || '0';
+                const totalParam = urlParams.get('total') || '0';
 
                 document.getElementById('clientTrackName').innerText = clientName;
                 document.getElementById('clientTrackDriver').innerText = driverName;
@@ -452,19 +461,37 @@
                     startTime = new Date();
                 }
 
-                // Iniciar cronómetro idéntico al del chofer en tiempo real
-                const clientTimerInterval = setInterval(() => {
-                    const now = new Date();
-                    const diffMs = now - startTime;
-                    const totalSecs = Math.max(0, Math.floor(diffMs / 1000));
+                if (statusParam === 'finalizado') {
+                    // Mostrar directamente el resumen final en el celular del cliente
+                    document.getElementById('clientFinishedAlert').classList.remove('hidden');
+                    document.getElementById('clientSummaryCard').classList.remove('hidden');
+                    document.getElementById('clientClockLabel').innerText = "Duración Total del Servicio";
+                    
+                    document.getElementById('clientSummaryDuration').innerText = `${durationParam} Minutos`;
+                    document.getElementById('clientSummaryContracted').innerText = `${contractedParam} Minutos`;
+                    document.getElementById('clientSummaryExtraMin').innerText = `${extraMinParam} min`;
+                    document.getElementById('clientSummaryBase').innerText = `$${Number(baseCostParam).toLocaleString('es-MX')} MXN`;
+                    document.getElementById('clientSummaryExtraCost').innerText = `$${Number(extraCostParam).toFixed(2)} MXN`;
+                    document.getElementById('clientSummaryTotal').innerText = `$${Number(totalParam).toFixed(2)} MXN`;
+                    
+                    // Mostrar tiempo congelado real
+                    const totalSecs = parseInt(durationParam) * 60;
                     const hrs = String(Math.floor(totalSecs / 3600)).padStart(2, '0');
                     const mins = String(Math.floor((totalSecs % 3600) / 60)).padStart(2, '0');
                     const secs = String(totalSecs % 60).padStart(2, '0');
                     document.getElementById('clientTimerDisplay').innerText = `${hrs}:${mins}:${secs}`;
-                }, 1000);
-
-                // Monitorear en Supabase si el chofer ya finalizó el trabajo
-                checkClientRealtimeStatus(folioParam, clientTimerInterval);
+                } else {
+                    // Mantener cronómetro activo en tiempo real idéntico al del chofer
+                    setInterval(() => {
+                        const now = new Date();
+                        const diffMs = now - startTime;
+                        const totalSecs = Math.max(0, Math.floor(diffMs / 1000));
+                        const hrs = String(Math.floor(totalSecs / 3600)).padStart(2, '0');
+                        const mins = String(Math.floor((totalSecs % 3600) / 60)).padStart(2, '0');
+                        const secs = String(totalSecs % 60).padStart(2, '0');
+                        document.getElementById('clientTimerDisplay').innerText = `${hrs}:${mins}:${secs}`;
+                    }, 1000);
+                }
                 return;
             }
 
@@ -478,59 +505,6 @@
                 dateInput.value = `${yyyy}-${mm}-${dd}`;
             }
         };
-
-        async function checkClientRealtimeStatus(folio, timerIntervalRef) {
-            try {
-                // Consultar estatus actual en Supabase
-                const { data } = await _supabase
-                    .from('servicios_tiempo')
-                    .select('*')
-                    .eq('folio', folio)
-                    .single();
-
-                if (data && data.estado === 'FINALIZADO') {
-                    clearInterval(timerIntervalRef);
-                    showClientFinishedView(data);
-                }
-
-                // Escuchar cambios en tiempo real vía Supabase Realtime
-                _supabase
-                    .channel('public:servicios_tiempo:folio=' + folio)
-                    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'servicios_tiempo', filter: `folio=eq.${folio}` }, payload => {
-                        if (payload.new.estado === 'FINALIZADO') {
-                            clearInterval(timerIntervalRef);
-                            showClientFinishedView(payload.new);
-                        }
-                    })
-                    .subscribe();
-            } catch (e) {
-                console.warn('Modo directo activo');
-            }
-        }
-
-        function showClientFinishedView(data) {
-            document.getElementById('clientFinishedAlert').classList.remove('hidden');
-            document.getElementById('clientSummaryCard').classList.remove('hidden');
-            document.getElementById('clientClockLabel').innerText = "Duración Total del Servicio";
-            
-            // Rellenar datos del resumen para el cliente
-            document.getElementById('clientSummaryDuration').innerText = `${data.minutos_reales} Minutos`;
-            document.getElementById('clientSummaryContracted').innerText = `${data.minutos_contratados} Minutos`;
-            document.getElementById('clientSummaryExtraMin').innerText = `${data.minutos_extras} min`;
-            document.getElementById('clientSummaryBase').innerText = `$${Number(data.costo_base).toLocaleString('es-MX')} MXN`;
-            document.getElementById('clientSummaryExtraCost').innerText = `$${Number(data.costo_extra).toFixed(2)} MXN`;
-            document.getElementById('clientSummaryTotal').innerText = `$${Number(data.total_pagado).toFixed(2)} MXN`;
-            
-            // Mostrar tiempo exacto congelado del cierre
-            if(data.start_time && data.end_time) {
-                const diffMs = new Date(data.end_time) - new Date(data.start_time);
-                const totalSecs = Math.max(0, Math.floor(diffMs / 1000));
-                const hrs = String(Math.floor(totalSecs / 3600)).padStart(2, '0');
-                const mins = String(Math.floor((totalSecs % 3600) / 60)).padStart(2, '0');
-                const secs = String(totalSecs % 60).padStart(2, '0');
-                document.getElementById('clientTimerDisplay').innerText = `${hrs}:${mins}:${secs}`;
-            }
-        }
 
         function startService() {
             const driver = document.getElementById('driverName').value.trim();
@@ -567,22 +541,6 @@
                 startIsoString: startTime.toISOString()
             };
 
-            // Guardar registro activo en Supabase
-            try {
-                _supabase.from('servicios_tiempo').insert([{
-                    folio: currentFolio,
-                    fecha: date,
-                    socio: driver,
-                    cliente: client,
-                    vehiculo: config.name,
-                    minutos_contratados: contractedMins,
-                    start_time: serviceData.startIsoString,
-                    estado: 'ACTIVO'
-                }]).then();
-            } catch (e) {
-                console.error("Error al registrar inicio:", e);
-            }
-
             document.getElementById('displayClientName').innerText = client;
             document.getElementById('displayDriverName').innerText = driver;
             document.getElementById('displayVehicleName').innerText = config.name;
@@ -600,7 +558,7 @@
 
         function shareTrackingToClient() {
             const currentUrl = window.location.origin + window.location.pathname;
-            // Pasamos TODOS los datos necesarios directo en la URL para que el cliente los visualice al instante
+            // El enlace lleva toda la data inicial necesaria
             const trackingLink = `${currentUrl}?folio=${serviceData.folio}&cliente=${encodeURIComponent(serviceData.client)}&socio=${encodeURIComponent(serviceData.driver)}&vehiculo=${encodeURIComponent(serviceData.vehicleName)}&start=${encodeURIComponent(serviceData.startIsoString)}`;
             
             const msg = `👋 *Hola ${serviceData.client}*%0A%0A` +
@@ -672,7 +630,7 @@
                 photoBase64 = reader.result;
 
                 const diffMs = endTime - startTime;
-                const totalMinutesReal = Math.floor(diffMs / (1000 * 60));
+                const totalMinutesReal = Math.max(1, Math.floor(diffMs / (1000 * 60))); // Mínimo 1 minuto para pruebas rápidas
                 let extraMinutes = 0;
                 let extraCost = 0;
 
@@ -700,7 +658,7 @@
                 document.getElementById('summaryEndTime').innerText = serviceData.endTimeFormatted;
                 document.getElementById('summaryTotalDuration').innerText = `${totalMinutesReal} Minutos`;
                 document.getElementById('summaryContractedTime').innerText = `${serviceData.contractedMinutes} Minutos`;
-                document.getElementById('summaryExtraMinutes').innerText = `${extraMinutes} min ${extraMinutes === 30 ? '(Alcanzó tope máx)' : ''}`;
+                document.getElementById('summaryExtraMinutes').innerText = `${extraMinutes} min`;
                 document.getElementById('summaryBasePrice').innerText = `$${baseCost.toLocaleString('es-MX')} MXN`;
                 document.getElementById('summaryHelpersPrice').innerText = `$${helpersCost.toLocaleString('es-MX')} MXN`;
                 document.getElementById('summaryExtraCost').innerText = `$${extraCost.toFixed(2)} MXN`;
@@ -709,10 +667,15 @@
                 document.getElementById('auditSection').classList.add('hidden');
                 document.getElementById('finalSummarySection').classList.remove('hidden');
 
-                // Actualizar en Supabase para que el cliente vea el resumen final en su pantalla
+                // También guardamos en Supabase en segundo plano para respaldo
                 try {
-                    await _supabase.from('servicios_tiempo').update({
-                        end_time: endTime.toISOString(),
+                    _supabase.from('servicios_tiempo').insert([{
+                        folio: serviceData.folio,
+                        fecha: serviceData.date,
+                        socio: serviceData.driver,
+                        cliente: serviceData.client,
+                        vehiculo: serviceData.vehicleName,
+                        minutos_contratados: serviceData.contractedMinutes,
                         minutos_reales: totalMinutesReal,
                         minutos_extras: extraMinutes,
                         costo_base: baseCost,
@@ -721,31 +684,28 @@
                         total_pagado: grandTotal,
                         evidencia_foto: photoBase64,
                         estado: 'FINALIZADO'
-                    }).eq('folio', serviceData.folio);
+                    }]).then();
                 } catch (e) {
-                    console.error('Error al actualizar cierre:', e);
+                    console.warn(e);
                 }
+
+                // Guardamos los datos de cierre directamente en serviceData para el botón de WhatsApp
+                serviceData.finalLink = `${window.location.origin}${window.location.pathname}?folio=${serviceData.folio}&cliente=${encodeURIComponent(serviceData.client)}&socio=${encodeURIComponent(serviceData.driver)}&vehiculo=${encodeURIComponent(serviceData.vehicleName)}&start=${encodeURIComponent(serviceData.startIsoString)}&status=finalizado&dur=${totalMinutesReal}&contratado=${serviceData.contractedMinutes}&extramin=${extraMinutes}&base=${baseCost}&extracost=${extraCost}&total=${grandTotal}`;
             };
             reader.readAsDataURL(file);
         }
 
         function sendWhatsAppReport() {
-            const msg = `🛡️ *REPORTE AUDITADO UINGO*%0A%0A` +
+            const linkToSend = serviceData.finalLink || window.location.href;
+            const msg = `🛡️ *REPORTE AUDITADO UINGO* 🛡️%0A%0A` +
                 `📋 *Folio:* ${serviceData.folio}%0A` +
-                `👤 *Socio / Chofer:* ${serviceData.driver}%0A` +
+                `👤 *Socio:* ${serviceData.driver}%0A` +
                 `🏢 *Cliente:* ${serviceData.client}%0A` +
-                `📅 *Fecha:* ${serviceData.date}%0A` +
                 `🚗 *Vehículo:* ${serviceData.vehicleName}%0A` +
-                `⏱️ *Contratado:* ${serviceData.contractedMinutes} min (+5m cortesía)%0A` +
-                `🕐 *Llegada:* ${serviceData.startTimeFormatted} | *Cierre:* ${serviceData.endTimeFormatted}%0A` +
-                `⏳ *Tiempo Real:* ${serviceData.totalMinutesReal} min (Extra cobrado: ${serviceData.extraMinutes} min máx)%0A` +
-                `📸 *Evidencia Fotográfica:* Registrada y Guardada en Base de Datos%0A` +
-                `💰 *Base Renta:* $${serviceData.baseCost.toLocaleString('es-MX')} MXN%0A` +
-                (serviceData.helpers > 0 ? `👥 *Ayudantes Extras:* $${serviceData.helpersCost.toLocaleString('es-MX')} MXN%0A` : '') +
-                (serviceData.extraCost > 0 ? `⚠️ *Recargo Tiempo Extra:* $${serviceData.extraCost.toFixed(2)} MXN%0A` : '') +
-                `💎 *TOTAL A COBRAR:* *$${serviceData.grandTotal.toFixed(2)} MXN*%0A%0A` +
-                `_Sistema antifraude y control de tiempos UINGO._`;
-            window.open(`https://wa.me/523122416157?text=${msg}`, '_blank');
+                `⏱️ *Duración Real:* ${serviceData.totalMinutesReal} Minutos%0A` +
+                `💎 *TOTAL A PAGAR:* *$${serviceData.grandTotal.toFixed(2)} MXN*%0A%0A` +
+                `📊 *Consulta tu resumen completo en el enlace:*%0A${linkToSend}`;
+            window.open(`https://wa.me/?text=${msg}`, '_blank');
         }
 
         function resetApp() {
