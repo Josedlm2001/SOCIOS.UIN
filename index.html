@@ -108,7 +108,7 @@
             </div>
             
             <!-- Aviso de Servicio Finalizado para el Cliente -->
-            <div id="clientFinishedAlert" class="hidden bg-emerald-50 border border-emerald-200 rounded-2xl p-4 text-emerald-800 text-xs font-bold space-y-1">
+            <div id="clientFinishedAlert" class="hidden bg-emerald-50 border border-emerald-200 rounded-2xl p-4 text-emerald-800 text-xs font-bold space-y-2">
                 <p class="text-sm"><i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i> ¡El servicio ha finalizado con éxito!</p>
                 <p class="text-[11px] text-slate-600 font-normal">El socio ha concluido el tiempo y registrado la evidencia de entrega.</p>
             </div>
@@ -143,16 +143,23 @@
                 </div>
             </div>
 
-            <!-- Resumen de Costos para el Cliente al Finalizar -->
-            <div id="clientSummaryCard" class="hidden bg-slate-50 border border-slate-200 rounded-2xl p-4 text-left text-xs space-y-2">
-                <p class="font-bold text-uingo-blue border-b pb-1 text-sm">Resumen de Cobro Final:</p>
+            <!-- Resumen de Costos Detallado para el Cliente al Finalizar -->
+            <div id="clientSummaryCard" class="hidden bg-slate-50 border border-slate-200 rounded-2xl p-4 text-left text-xs space-y-2.5">
+                <p class="font-bold text-uingo-blue border-b pb-1.5 text-sm">📋 Desglose y Resumen del Servicio:</p>
                 <div class="flex justify-between"><span class="text-slate-500">Duración Real:</span> <span id="clientSummaryDuration" class="font-bold text-slate-800">-</span></div>
-                <div class="flex justify-between"><span class="text-slate-500">Total a Pagar:</span> <span id="clientSummaryTotal" class="font-black text-uingo-blue text-base">-</span></div>
+                <div class="flex justify-between"><span class="text-slate-500">Tiempo Contratado:</span> <span id="clientSummaryContracted" class="font-bold text-slate-800">-</span></div>
+                <div class="flex justify-between"><span class="text-slate-500">Tiempo Extra Cobrado:</span> <span id="clientSummaryExtraMin" class="font-bold text-rose-600">-</span></div>
+                <div class="flex justify-between"><span class="text-slate-500">Costo Base Inicial:</span> <span id="clientSummaryBase" class="font-bold text-slate-800">-</span></div>
+                <div class="flex justify-between"><span class="text-slate-500">Recargo Tiempo Extra:</span> <span id="clientSummaryExtraCost" class="font-bold text-rose-600">-</span></div>
+                <div class="flex justify-between items-center text-sm pt-2 border-t border-slate-200">
+                    <span class="font-black text-uingo-black">TOTAL A PAGAR:</span> 
+                    <span id="clientSummaryTotal" class="font-black text-uingo-blue text-xl font-mono">-</span>
+                </div>
             </div>
 
             <div class="p-4 bg-sky-50 border border-sky-200 rounded-2xl text-xs text-slate-600 text-left">
                 <p class="font-bold text-uingo-blue mb-1">ℹ️ Nota de Transparencia:</p>
-                <p>Tu tiempo comenzó al llegar la unidad. Cuentas con 5 minutos de cortesía. Este panel se actualiza automáticamente.</p>
+                <p>Tu tiempo comenzó al llegar la unidad. Cuentas con 5 minutos de cortesía. Este panel se actualiza automáticamente al finalizar el servicio.</p>
             </div>
         </section>
 
@@ -193,7 +200,7 @@
                 <div>
                     <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Tipo de Vehículo *</label>
                     <select id="vehicleType" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm text-uingo-blue font-bold focus:outline-none focus:border-uingo-blue transition">
-                        <option value="camioneta">Camioneta 1.2T — $312 / 30 min</option>
+                        <option value="camioneta">Camioneta 1.2T — $213 / 30 min</option>
                         <option value="camion">Camión 3T — $936 / 30 min</option>
                     </select>
                 </div>
@@ -224,7 +231,7 @@
                         Política Antifraude UINGO:
                     </p>
                     <p class="leading-relaxed">
-                        • Al iniciar, se abrirá obligatoriamente WhatsApp para compartir el seguimiento en vivo al cliente.
+                        • Al iniciar, se abrirá obligatoriamente WhatsApp para compartir el enlace de seguimiento en vivo al cliente.
                     </p>
                     <p class="leading-relaxed">
                         • El tiempo extra cuenta con un <strong class="text-rose-600">tope estricto máximo de 30 minutos extras</strong>.
@@ -396,7 +403,7 @@
         </div>
     </footer>
 
-    <!-- LÓGICA JAVASCRIPT PERFECTAMENTE SINCRONIZADA -->
+    <!-- LÓGICA JAVASCRIPT DIRECTA POR URL Y TIEMPO REAL -->
     <script>
         let startTime = null;
         let endTime = null;
@@ -408,8 +415,8 @@
         const ratesConfig = {
             camioneta: {
                 name: 'Camioneta (1.2 Toneladas)',
-                rate30Min: 312,
-                perMin: 312 / 30
+                rate30Min: 213,
+                perMin: 213 / 30
             },
             camion: {
                 name: 'Camión (3 Toneladas)',
@@ -423,7 +430,7 @@
             const folioParam = urlParams.get('folio');
             
             if (folioParam) {
-                // MODO CLIENTE: Leer los datos que vienen directo en el link
+                // MODO CLIENTE: Leer los datos que vienen directamente en el enlace
                 document.getElementById('setupSection').classList.add('hidden');
                 document.getElementById('clientTrackView').classList.remove('hidden');
                 document.getElementById('headerTitle').innerText = "Seguimiento Cliente";
@@ -445,8 +452,8 @@
                     startTime = new Date();
                 }
 
-                // Iniciar cronómetro idéntico al del chofer
-                setInterval(() => {
+                // Iniciar cronómetro idéntico al del chofer en tiempo real
+                const clientTimerInterval = setInterval(() => {
                     const now = new Date();
                     const diffMs = now - startTime;
                     const totalSecs = Math.max(0, Math.floor(diffMs / 1000));
@@ -456,8 +463,8 @@
                     document.getElementById('clientTimerDisplay').innerText = `${hrs}:${mins}:${secs}`;
                 }, 1000);
 
-                // Monitorear en Supabase en tiempo real si el chofer ya finalizó el servicio
-                checkClientRealtimeStatus(folioParam);
+                // Monitorear en Supabase si el chofer ya finalizó el trabajo
+                checkClientRealtimeStatus(folioParam, clientTimerInterval);
                 return;
             }
 
@@ -472,10 +479,9 @@
             }
         };
 
-        // Monitorear cambios del servicio en Supabase para el cliente
-        async function checkClientRealtimeStatus(folio) {
+        async function checkClientRealtimeStatus(folio, timerIntervalRef) {
             try {
-                // Verificar estado inicial
+                // Consultar estatus actual en Supabase
                 const { data } = await _supabase
                     .from('servicios_tiempo')
                     .select('*')
@@ -483,20 +489,22 @@
                     .single();
 
                 if (data && data.estado === 'FINALIZADO') {
+                    clearInterval(timerIntervalRef);
                     showClientFinishedView(data);
                 }
 
-                // Escuchar en tiempo real si el chofer presiona finalizar
+                // Escuchar cambios en tiempo real vía Supabase Realtime
                 _supabase
                     .channel('public:servicios_tiempo:folio=' + folio)
                     .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'servicios_tiempo', filter: `folio=eq.${folio}` }, payload => {
                         if (payload.new.estado === 'FINALIZADO') {
+                            clearInterval(timerIntervalRef);
                             showClientFinishedView(payload.new);
                         }
                     })
                     .subscribe();
             } catch (e) {
-                console.warn('Modo directo activo sin conexión estricta realtime');
+                console.warn('Modo directo activo');
             }
         }
 
@@ -504,10 +512,16 @@
             document.getElementById('clientFinishedAlert').classList.remove('hidden');
             document.getElementById('clientSummaryCard').classList.remove('hidden');
             document.getElementById('clientClockLabel').innerText = "Duración Total del Servicio";
+            
+            // Rellenar datos del resumen para el cliente
             document.getElementById('clientSummaryDuration').innerText = `${data.minutos_reales} Minutos`;
+            document.getElementById('clientSummaryContracted').innerText = `${data.minutos_contratados} Minutos`;
+            document.getElementById('clientSummaryExtraMin').innerText = `${data.minutos_extras} min`;
+            document.getElementById('clientSummaryBase').innerText = `$${Number(data.costo_base).toLocaleString('es-MX')} MXN`;
+            document.getElementById('clientSummaryExtraCost').innerText = `$${Number(data.costo_extra).toFixed(2)} MXN`;
             document.getElementById('clientSummaryTotal').innerText = `$${Number(data.total_pagado).toFixed(2)} MXN`;
             
-            // Congelar reloj en el tiempo final real
+            // Mostrar tiempo exacto congelado del cierre
             if(data.start_time && data.end_time) {
                 const diffMs = new Date(data.end_time) - new Date(data.start_time);
                 const totalSecs = Math.max(0, Math.floor(diffMs / 1000));
@@ -553,7 +567,7 @@
                 startIsoString: startTime.toISOString()
             };
 
-            // Guardar registro en Supabase para auditoría y estatus final
+            // Guardar registro activo en Supabase
             try {
                 _supabase.from('servicios_tiempo').insert([{
                     folio: currentFolio,
@@ -586,12 +600,12 @@
 
         function shareTrackingToClient() {
             const currentUrl = window.location.origin + window.location.pathname;
-            // Pasamos todos los datos necesarios directamente en la URL para que el cliente los vea sin BD
+            // Pasamos TODOS los datos necesarios directo en la URL para que el cliente los visualice al instante
             const trackingLink = `${currentUrl}?folio=${serviceData.folio}&cliente=${encodeURIComponent(serviceData.client)}&socio=${encodeURIComponent(serviceData.driver)}&vehiculo=${encodeURIComponent(serviceData.vehicleName)}&start=${encodeURIComponent(serviceData.startIsoString)}`;
             
             const msg = `👋 *Hola ${serviceData.client}*%0A%0A` +
                 `Soy tu chofer/socio de *UINGO* (${serviceData.driver}). Te confirmo que *la unidad ya se encuentra en la ubicación* de inicio.%0A%0A` +
-                `⏱️ *Puedes monitorear el tiempo exacto en tiempo real y ver tu resumen al finalizar aquí:*%0A` +
+                `⏱️ *Puedes monitorear el tiempo en tiempo real y ver tu resumen al finalizar aquí:*%0A` +
                 `${trackingLink}%0A%0A` +
                 `_Gracias por tu confianza en UINGO Logística._`;
             window.open(`https://wa.me/?text=${msg}`, '_blank');
@@ -695,7 +709,7 @@
                 document.getElementById('auditSection').classList.add('hidden');
                 document.getElementById('finalSummarySection').classList.remove('hidden');
 
-                // Actualizar en Supabase para que el link del cliente detecte el cierre y muestre el resumen
+                // Actualizar en Supabase para que el cliente vea el resumen final en su pantalla
                 try {
                     await _supabase.from('servicios_tiempo').update({
                         end_time: endTime.toISOString(),
