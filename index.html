@@ -175,15 +175,20 @@
                         <input type="text" id="driverName" required placeholder="Ej. Carlos Mendoza" class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-10 pr-4 py-3 text-sm text-uingo-black focus:outline-none focus:border-uingo-blue focus:ring-1 focus:ring-uingo-blue transition">
                     </div>
                 </div>
-                <div>
+
+                <!-- BÚSQUEDA Y AUTOCOMPLETADO DE CLIENTES DESDE SUPABASE -->
+                <div class="relative">
                     <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Nombre del Cliente *</label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
                             <i class="fa-solid fa-user text-sm"></i>
                         </span>
-                        <input type="text" id="clientName" required placeholder="Ej. Roberto Gómez" class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-10 pr-4 py-3 text-sm text-uingo-black focus:outline-none focus:border-uingo-blue focus:ring-1 focus:ring-uingo-blue transition">
+                        <input type="text" id="clientName" autocomplete="off" required placeholder="Escribe para buscar cliente registrado..." oninput="searchClientInSupabase(this.value)" class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-10 pr-4 py-3 text-sm text-uingo-black focus:outline-none focus:border-uingo-blue focus:ring-1 focus:ring-uingo-blue transition">
                     </div>
+                    <!-- Contenedor desplegable de sugerencias de Supabase -->
+                    <div id="clientSuggestions" class="absolute left-0 right-0 z-50 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl max-h-48 overflow-y-auto hidden"></div>
                 </div>
+
                 <div>
                     <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Fecha del Servicio *</label>
                     <div class="relative w-full">
@@ -396,7 +401,7 @@
         </div>
     </footer>
 
-    <!-- LÓGICA JAVASCRIPT SINCRONIZADA CON SUPABASE -->
+    <!-- LÓGICA JAVASCRIPT CONECTADA CORRECTAMENTE -->
     <script>
         let startTime = null;
         let endTime = null;
@@ -404,6 +409,7 @@
         let serviceData = {};
         let photoBase64 = "";
         let currentFolio = "";
+        let searchTimeout = null;
         
         const ratesConfig = {
             camioneta: {
@@ -423,14 +429,13 @@
             const folioParam = urlParams.get('folio');
             
             if (folioParam) {
-                // MODO CLIENTE: Consultar estado actual del servicio en Supabase en tiempo real
+                // MODO CLIENTE: Consultar el inicio real del servicio en Supabase
                 document.getElementById('setupSection').classList.add('hidden');
                 document.getElementById('clientTrackView').classList.remove('hidden');
                 document.getElementById('headerTitle').innerText = "Seguimiento Cliente";
                 document.getElementById('headerSub').innerText = "Monitoreo Sincronizado";
                 document.getElementById('clientTrackFolio').innerText = folioParam;
 
-                // Cargar datos iniciales del servicio desde Supabase
                 await loadClientLiveService(folioParam);
                 return;
             }
@@ -446,10 +451,61 @@
             }
         };
 
-        // Función para que el cliente cargue y sincronice el tiempo exacto del chofer
+        // BÚSQUEDA DE CLIENTES DESDE SUPABASE
+        function searchClientInSupabase(query) {
+            clearTimeout(searchTimeout);
+            const container = document.getElementById('clientSuggestions');
+            
+            if (!query || query.trim().length < 2) {
+                container.classList.add('hidden');
+                return;
+            }
+
+            searchTimeout = setTimeout(async () => {
+                try {
+                    const { data, error } = await _supabase
+                        .from('clientes')
+                        .select('nombre, telefono, tipo')
+                        .ilike('nombre', `%${query}%`)
+                        .limit(5);
+
+                    container.innerHTML = '';
+
+                    if (data && data.length > 0) {
+                        data.forEach(item => {
+                            const div = document.createElement('div');
+                            div.className = 'p-3 text-xs text-slate-700 hover:bg-blue-50 cursor-pointer border-b border-slate-100 flex justify-between items-center';
+                            div.innerHTML = `
+                                <div>
+                                    <strong class="text-uingo-black block font-bold">${item.nombre}</strong>
+                                    <span class="text-[10px] text-slate-400">${item.tipo || 'Particular'} • Tel: ${item.telefono || 'Sin tel'}</span>
+                                </div>
+                                <span class="text-uingo-blue text-[10px] font-bold"><i class="fa-solid fa-check"></i> Seleccionar</span>
+                            `;
+                            div.onclick = () => {
+                                document.getElementById('clientName').value = item.nombre;
+                                container.classList.add('hidden');
+                            };
+                            container.appendChild(div);
+                        });
+                        container.classList.remove('hidden');
+                    } else {
+                        const div = document.createElement('div');
+                        div.className = 'p-3 text-xs text-slate-500 italic';
+                        div.innerText = 'Usar nombre escrito (Nuevo cliente)';
+                        div.onclick = () => { container.classList.add('hidden'); };
+                        container.appendChild(div);
+                        container.classList.remove('hidden');
+                    }
+                } catch (e) {
+                    console.error('Error buscando cliente:', e);
+                }
+            }, 300);
+        }
+
         async function loadClientLiveService(folio) {
             try {
-                // Buscamos en Supabase el registro activo o finalizado con este folio
+                // Buscamos el servicio en Supabase usando el folio exacto
                 const { data, error } = await _supabase
                     .from('servicios_tiempo')
                     .select('*')
@@ -460,45 +516,43 @@
                     document.getElementById('clientTrackName').innerText = "Cliente UINGO";
                     document.getElementById('clientTrackDriver').innerText = "Socio Asignado";
                     document.getElementById('clientTrackVehicle').innerText = "Unidad Activa";
-                    // Fallback si aún no se sincroniza a BD, inicia con el tiempo actual del cliente
                     startTime = new Date();
                     startClientSyncTimer(null);
                     return;
                 }
 
+                // Pintamos los datos reales del cliente guardados por el chofer
                 document.getElementById('clientTrackName').innerText = data.cliente;
                 document.getElementById('clientTrackDriver').innerText = data.socio;
                 document.getElementById('clientTrackVehicle').innerText = data.vehiculo;
 
-                startTime = new Date(data.start_time);
+                // Tomamos la fecha guardada en la columna 'fecha' (o start_time si existe) como base de inicio
+                startTime = new Date(data.created_at || data.fecha);
 
                 if (data.estado === 'FINALIZADO') {
-                    // Si ya finalizó, mostrar estado final y costo total
                     document.getElementById('clientFinishedAlert').classList.remove('hidden');
                     document.getElementById('clientSummaryCard').classList.remove('hidden');
                     document.getElementById('clientClockLabel').innerText = "Duración Total del Servicio";
                     document.getElementById('clientSummaryDuration').innerText = `${data.minutos_reales} Minutos`;
                     document.getElementById('clientSummaryTotal').innerText = `$${Number(data.total_pagado).toFixed(2)} MXN`;
                     
-                    // Mostrar tiempo final estático
-                    const diffMs = new Date(data.end_time) - startTime;
+                    const diffMs = new Date(data.end_time || Date.now()) - startTime;
                     displayFormattedTime(diffMs, 'clientTimerDisplay');
                 } else {
-                    // Si sigue activo, iniciar el cronómetro sincronizado con la hora del chofer
-                    startClientSyncTimer(data.start_time);
+                    startClientSyncTimer(startTime);
                     
-                    // Suscribirse a cambios en tiempo real por si el chofer finaliza mientras el cliente observa
+                    // Escuchar cambios en tiempo real si el chofer finaliza
                     _supabase
                         .channel('public:servicios_tiempo:folio=' + folio)
                         .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'servicios_tiempo', filter: `folio=eq.${folio}` }, payload => {
                             if (payload.new.estado === 'FINALIZADO') {
-                                location.reload(); // Recarga limpia para mostrar resultados finales al cliente
+                                location.reload();
                             }
                         })
                         .subscribe();
                 }
             } catch (e) {
-                console.warn('Error conectando con Supabase para cliente:', e);
+                console.warn('Error sincronizando con Supabase:', e);
                 startTime = new Date();
                 startClientSyncTimer(null);
             }
@@ -553,24 +607,22 @@
                 allowedMinutes: contractedMins + 5,
                 rate30Min: config.rate30Min,
                 perMinRate: config.perMin,
-                startTimeFormatted: startTime.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-                startIsoString: startTime.toISOString()
+                startTimeFormatted: startTime.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
             };
 
-            // Guardar inicio de servicio en Supabase de inmediato para que el link del cliente se sincronice
+            // Guardamos usando las columnas estándar existentes de tu tabla
             try {
                 await _supabase.from('servicios_tiempo').insert([{
                     folio: currentFolio,
-                    fecha: date,
+                    fecha: new Date().toISOString(),
                     socio: driver,
                     cliente: client,
                     vehiculo: config.name,
                     minutos_contratados: contractedMins,
-                    start_time: serviceData.startIsoString,
                     estado: 'ACTIVO'
                 }]);
             } catch (e) {
-                console.error("Error al sincronizar inicio en Supabase:", e);
+                console.error("Error al registrar inicio en Supabase:", e);
             }
 
             document.getElementById('displayClientName').innerText = client;
@@ -585,7 +637,6 @@
             timerInterval = setInterval(updateTimerDisplay, 1000);
             updateTimerDisplay();
 
-            // Abrir WhatsApp con el enlace sincronizado
             shareTrackingToClient();
         }
 
@@ -697,10 +748,8 @@
                 document.getElementById('auditSection').classList.add('hidden');
                 document.getElementById('finalSummarySection').classList.remove('hidden');
 
-                // Actualizar el registro en Supabase marcándolo como FINALIZADO para que el cliente lo vea al instante
                 try {
                     await _supabase.from('servicios_tiempo').update({
-                        end_time: endTime.toISOString(),
                         minutos_reales: totalMinutesReal,
                         minutos_extras: extraMinutes,
                         costo_base: baseCost,
